@@ -155,7 +155,7 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                         <div className="flex items-center gap-2 mt-1">
                             <span className="text-[10px] font-black bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-lg border border-indigo-200/50">{sod.product.sku}</span>
                             <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-tight ${isSubmitted ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-amber-100 text-amber-700 border-amber-200/50'}`}>
-                                {isSubmitted ? 'Đã báo cáo sai lệch' : 'KHO: BÁO CÁO SAI LỆCH'}
+                                {isSubmitted ? 'Đã gửi Request lệch' : 'Request lệch kho'}
                             </span>
                         </div>
                     </div>

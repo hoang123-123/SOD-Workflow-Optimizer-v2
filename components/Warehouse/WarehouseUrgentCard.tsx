@@ -64,6 +64,7 @@ export const WarehouseUrgentCard: React.FC<WarehouseUrgentCardProps> = ({
                         <Zap className="w-5 h-5 fill-amber-200" />
                     </div>
                     <div className="min-w-0">
+                        <div className="font-black text-gray-900 text-lg uppercase tracking-tighter leading-tight">Request giao gấp</div>
                         <div className="font-extrabold text-gray-900 text-base leading-tight truncate uppercase tracking-tight">
                             {sod.detailName}
                         </div>

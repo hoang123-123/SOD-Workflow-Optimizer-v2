@@ -93,7 +93,7 @@ export const WarehouseActionCard: React.FC<WarehouseActionCardProps> = ({
                             <div className="p-3 bg-white rounded-xl shadow-sm text-emerald-600 border border-emerald-100">
                                 <ClipboardList className="w-6 h-6" />
                             </div>
-                            <h4 className="text-lg font-black text-gray-900 uppercase tracking-tighter">Xác nhận xuất kho</h4>
+                            <h4 className="text-lg font-black text-gray-900 uppercase tracking-tighter">Request xuất kho</h4>
                         </div>
                         <WarehouseActionZone
                             sod={sod}

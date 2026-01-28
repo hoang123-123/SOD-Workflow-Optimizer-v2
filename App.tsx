@@ -808,7 +808,7 @@ const App: React.FC = () => {
                                                 <div className="text-left">
                                                     <div className="flex items-start gap-1">
                                                         <span className={`block font-black uppercase tracking-tighter text-2xl leading-none ${isShortageExpanded ? 'text-gray-900' : 'text-gray-500'}`}>
-                                                            {currentRole === UserRole.WAREHOUSE ? 'Đơn gấp khả thi' : 'Danh sách thiếu hàng'}
+                                                            {currentRole === UserRole.WAREHOUSE ? 'Request giao gấp' : 'Danh sách thiếu hàng'}
                                                         </span>
                                                         <div className={`px-2 py-0.5 rounded-full font-black text-[10px] shadow-sm transform -translate-y-2 transition-all duration-500 ${isShortageExpanded ? 'bg-indigo-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
                                                             {processedShortageSods.length}
