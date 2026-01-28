@@ -2,14 +2,17 @@
 import { UserRole, SODStatus } from '../types';
 
 // Định nghĩa các loại Trigger Action mà hệ thống hỗ trợ
-export type TriggerActionType = 
+export type TriggerActionType =
     | 'TRIGGER_SALE_SHIPMENT'      // Sale giao hàng
     | 'TRIGGER_SALE_WAIT'          // Sale chờ hàng
     | 'TRIGGER_SALE_CANCEL'        // Sale hủy
     | 'TRIGGER_SOURCE_CONFIRM'     // Source xác nhận ETA
     | 'TRIGGER_WH_REPORT'          // Kho báo cáo thiếu
     | 'TRIGGER_WH_CONFIRM'         // Kho xác nhận xuất
-    | 'TRIGGER_WH_REJECT';         // Kho từ chối
+    | 'TRIGGER_WH_REJECT'          // Kho từ chối
+    | 'TRIGGER_SALE_URGENT_REQUEST' // Sale yêu cầu đơn gấp
+    | 'TRIGGER_WH_ACCEPT_URGENT'    // Kho chấp nhận đơn gấp
+    | 'TRIGGER_WH_REJECT_URGENT';   // Kho từ chối đơn gấp
 
 export interface BusinessRule {
     id: string;
@@ -17,7 +20,7 @@ export interface BusinessRule {
     name: string;
     description: string;
     actor: UserRole;
-    
+
     // INPUT: Điều kiện kích hoạt
     input: {
         actionName: string;
@@ -30,7 +33,7 @@ export interface BusinessRule {
         apiTrigger: string; // Mô tả (Documentation)
         notificationTag?: string; // [NEW] Định danh Type của Notification gửi đi
         nextStatus: SODStatus | 'KEEP_CURRENT'; // Trạng thái đích
-        logicDesc: string; 
+        logicDesc: string;
     };
 
     // OUTPUT: Mô tả UI
@@ -42,52 +45,52 @@ export interface BusinessRule {
 }
 
 export const BUSINESS_RULES: BusinessRule[] = [
-    // --- CASE A1: GIAO NGAY & CHỐT (CẬP NHẬT THEO YÊU CẦU: KHÔNG TREO SOD) ---
+    // --- CASE A1: GIAO & CHỐT LẦN 1 (K=1) ---
     {
         id: 'A1',
         group: 'CASE A (Lần đầu K=1)',
-        name: 'Giao ngay & Chốt',
-        description: 'Giao số lượng đang có và Hủy phần thiếu còn lại.',
+        name: 'Giao & Chốt dòng',
+        description: 'Giao số có sẵn và chốt dòng hàng. Tag: DT_X1_D1',
         actor: UserRole.SALE,
         input: {
-            actionName: 'Giao [X] SP',
-            condition: 'DeliveryCount = 0 & Có Tồn kho'
+            actionName: 'Giao & Chốt',
+            condition: 'DeliveryCount = 0 & Có hàng khả dụng'
         },
         process: {
             triggerAction: 'TRIGGER_SALE_SHIPMENT',
             apiTrigger: 'notifyWarehouseOnSaleShipment',
-            notificationTag: 'SALE_TO_WAREHOUSE_CHOT_DON', // [UPDATED] Chuyển sang Chốt đơn ngay lần 1
+            notificationTag: 'SALE_TO_WAREHOUSE_CHOT_DON',
             nextStatus: SODStatus.RESOLVED,
-            logicDesc: 'Gửi yêu cầu xuất kho L. Chốt đơn và hủy phần thiếu.'
+            logicDesc: 'Gửi yêu cầu xuất + Giảm số lượng đặt (nếu thiếu). Tag: DT_X1_D1'
         },
         output: {
             targetRole: UserRole.WAREHOUSE,
-            uiDescription: 'Thấy yêu cầu xuất kho kèm thông báo chốt.',
-            nextAction: 'Kho bấm Xác nhận Xuất.'
+            uiDescription: 'Kho nhận lệnh và thông báo chốt dòng.',
+            nextAction: 'Kho xác nhận xuất.'
         }
     },
-    // --- CASE A2: CHỜ HÀNG LẦN 1 ---
+    // --- CASE A2: CHỜ HÀNG (CHỈ SAU KHI KHO BÁO SAI LỆCH) ---
     {
         id: 'A2',
         group: 'CASE A (Lần đầu K=1)',
-        name: 'Chờ hàng (Wait All)',
-        description: 'Khách muốn chờ đủ hàng mới giao.',
+        name: 'Chờ bổ sung hàng',
+        description: 'Kho báo thiếu, khách đồng ý chờ. Tag: DT_X1_D1',
         actor: UserRole.SALE,
         input: {
-            actionName: 'Chờ hàng',
-            condition: 'DeliveryCount = 0'
+            actionName: 'Chờ bổ sung hàng',
+            condition: 'DeliveryCount = 0 & isNotificationSent = true'
         },
         process: {
             triggerAction: 'TRIGGER_SALE_WAIT',
             apiTrigger: 'notifySourceOnSaleDecision',
             notificationTag: 'SALE_TO_SOURCE',
             nextStatus: SODStatus.SHORTAGE_PENDING_SOURCE,
-            logicDesc: 'Chuyển trạng thái sang Chờ Source.'
+            logicDesc: 'Treo SOD chờ Source bổ sung. Tag: DT_X1_D1'
         },
         output: {
             targetRole: UserRole.SOURCE,
-            uiDescription: 'Thấy Card "Xử lý Nguồn hàng" sáng lên.',
-            nextAction: 'Source nhập ngày về và xác nhận.'
+            uiDescription: 'Source nhập ETA.',
+            nextAction: 'Source xác nhận ngày hàng về.'
         }
     },
     // --- CASE A3: HỦY ĐƠN LẦN 1 ---
@@ -95,10 +98,10 @@ export const BUSINESS_RULES: BusinessRule[] = [
         id: 'A3',
         group: 'CASE A (Lần đầu K=1)',
         name: 'Hủy đơn (Cancel)',
-        description: 'Khách không chờ được, hủy dòng hàng này.',
+        description: 'Hủy dòng hàng. Tag: DT_X1_D1',
         actor: UserRole.SALE,
         input: {
-            actionName: 'Hủy đơn',
+            actionName: 'Hủy dòng hàng',
             condition: 'DeliveryCount = 0'
         },
         process: {
@@ -106,49 +109,49 @@ export const BUSINESS_RULES: BusinessRule[] = [
             apiTrigger: 'notifySaleCancelDecision',
             notificationTag: 'SALE_HUY_DON',
             nextStatus: SODStatus.RESOLVED,
-            logicDesc: 'Đóng dòng hàng (Status = Resolved).'
+            logicDesc: 'Đóng dòng hàng 100%. Tag: DT_X1_D1'
         },
         output: {
             targetRole: UserRole.VIEWER,
-            uiDescription: 'Card hiển thị trạng thái "Đã Chốt".',
-            nextAction: 'Quy trình kết thúc.'
+            uiDescription: 'Trạng thái Đã Hủy.',
+            nextAction: 'Kết thúc.'
         }
     },
-    
-    // --- CASE B1: GIAO TIẾP & CHỐT ---
+
+    // --- CASE B1: GIAO TIẾP & CHỐT (Giao lần 2 - K>1) ---
     {
         id: 'B1',
         group: 'CASE B (Lần sau K>1)',
-        name: 'Giao tiếp & Chốt',
-        description: 'Giao nốt số có và chốt đơn (dù vẫn thiếu).',
+        name: 'Giao & Chốt (Partial)',
+        description: 'Giao số có và chốt luôn. Tag: DT_X1_D2',
         actor: UserRole.SALE,
         input: {
-            actionName: 'Giao [X] SP',
+            actionName: 'Giao & Chốt',
             condition: 'DeliveryCount > 0'
         },
         process: {
-            triggerAction: 'TRIGGER_SALE_SHIPMENT', 
+            triggerAction: 'TRIGGER_SALE_SHIPMENT',
             apiTrigger: 'notifyWarehouseOnSaleShipment',
             notificationTag: 'SALE_TO_WAREHOUSE_CHOT_DON',
             nextStatus: SODStatus.RESOLVED,
-            logicDesc: 'Gửi yêu cầu xuất kho L. Đồng thời chốt đơn.'
+            logicDesc: 'Gửi yêu cầu xuất + Giảm số lượng đặt. Tag: DT_X1_D2'
         },
         output: {
             targetRole: UserRole.WAREHOUSE,
-            uiDescription: 'Thấy yêu cầu xuất kho kèm thông báo chốt.',
-            nextAction: 'Kho bấm Xác nhận Xuất.'
+            uiDescription: 'Kho nhận lệnh và thông báo chốt.',
+            nextAction: 'Kho xác nhận xuất.'
         }
     },
-    // --- CASE B2: TIẾP TỤC CHỜ ---
+    // --- CASE B2: CHỜ HÀNG (CHỈ SAU KHI KHO BÁO SAI LỆCH) ---
     {
         id: 'B2',
         group: 'CASE B (Lần sau K>1)',
-        name: 'Tiếp tục chờ',
-        description: 'Vẫn chưa đủ hàng, tiếp tục chờ đợt sau.',
+        name: 'Chờ bổ sung hàng',
+        description: 'Kho báo thiếu, tiếp tục chờ đợt sau. Tag: DT_X1_D2',
         actor: UserRole.SALE,
         input: {
-            actionName: 'Chờ hàng',
-            condition: 'DeliveryCount > 0'
+            actionName: 'Chờ bổ sung hàng',
+            condition: 'DeliveryCount > 0 & isNotificationSent = true'
         },
         process: {
             triggerAction: 'TRIGGER_SALE_WAIT',
@@ -163,31 +166,31 @@ export const BUSINESS_RULES: BusinessRule[] = [
             nextAction: 'Source nhập ETA mới.'
         }
     },
-    // --- CASE B3: CHỐT ĐƠN (STOP) ---
+    // --- CASE B3: HỦY ĐƠN (CANCEL) - GIỐNG A3 ---
     {
         id: 'B3',
         group: 'CASE B (Lần sau K>1)',
-        name: 'Chốt đơn (Stop)',
-        description: 'Dừng, không chờ thêm nữa.',
+        name: 'Hủy đơn (Cancel)',
+        description: 'Hủy hoàn toàn dòng hàng. Không giao dở dang. Tag: DT_X1_D2',
         actor: UserRole.SALE,
         input: {
-            actionName: 'Hủy / Dừng',
+            actionName: 'Hủy dòng hàng',
             condition: 'DeliveryCount > 0'
         },
         process: {
             triggerAction: 'TRIGGER_SALE_CANCEL',
             apiTrigger: 'notifySaleCancelDecision',
-            notificationTag: 'SALE_CHOT_DON',
+            notificationTag: 'SALE_HUY_DON',
             nextStatus: SODStatus.RESOLVED,
-            logicDesc: 'Đóng dòng hàng theo số lượng đã giao.'
+            logicDesc: 'Hủy toàn bộ dòng hàng. Không cho phép giao dở dang. Tag: DT_X1_D2'
         },
         output: {
             targetRole: UserRole.VIEWER,
-            uiDescription: 'Card hiển thị trạng thái "Đã Chốt".',
-            nextAction: 'Quy trình kết thúc.'
+            uiDescription: 'Trạng thái Đã Hủy.',
+            nextAction: 'Kết thúc.'
         }
     },
-    
+
     // --- ACTION CỦA KHO: BÁO CÁO SALE ---
     {
         id: 'WH_REPORT',
@@ -203,7 +206,7 @@ export const BUSINESS_RULES: BusinessRule[] = [
             triggerAction: 'TRIGGER_WH_REPORT',
             apiTrigger: 'notifySaleOnShortage',
             notificationTag: 'WAREHOUSE_TO_SALE',
-            nextStatus: 'KEEP_CURRENT', 
+            nextStatus: 'KEEP_CURRENT',
             logicDesc: 'Cập nhật warehouseVerification. Gửi noti Sale.'
         },
         output: {
@@ -227,7 +230,7 @@ export const BUSINESS_RULES: BusinessRule[] = [
         process: {
             triggerAction: 'TRIGGER_WH_CONFIRM',
             apiTrigger: 'notifySale + notifyPicking',
-            notificationTag: 'WAREHOUSE_CONFIRM_EXPORT', 
+            notificationTag: 'WAREHOUSE_CONFIRM_EXPORT',
             nextStatus: SODStatus.RESOLVED,
             logicDesc: 'Cập nhật warehouseConfirmation = CONFIRMED.'
         },
@@ -276,13 +279,85 @@ export const BUSINESS_RULES: BusinessRule[] = [
             triggerAction: 'TRIGGER_SOURCE_CONFIRM',
             apiTrigger: 'notifySaleOnSourcePlan',
             notificationTag: 'SOURCE_TO_SALE',
-            nextStatus: SODStatus.RESOLVED, 
+            nextStatus: SODStatus.RESOLVED,
             logicDesc: 'Cập nhật SourcePlan = CONFIRMED.'
         },
         output: {
             targetRole: UserRole.SALE,
             uiDescription: 'Sale nhận thông tin ETA.',
             nextAction: 'Chờ đến ngày hàng về.'
+        }
+    },
+    // --- ACTION CỦA SALE: YÊU CẦU ĐƠN GẤP ---
+    {
+        id: 'SALE_URGENT',
+        group: 'EXCEPTION',
+        name: 'Sale Yêu Cầu Đơn Gấp',
+        description: 'Sale yêu cầu kho ưu tiên soạn đơn dù chưa đến hạn.',
+        actor: UserRole.SALE,
+        input: {
+            actionName: 'Yêu cầu Giao gấp',
+            condition: 'theoreticalStock > requiredProductQty & Future Order'
+        },
+        process: {
+            triggerAction: 'TRIGGER_SALE_URGENT_REQUEST',
+            apiTrigger: 'notifyWarehouseOnUrgentRequest',
+            notificationTag: 'SALE_URGENT_TO_WH',
+            nextStatus: 'KEEP_CURRENT',
+            logicDesc: 'Gửi yêu cầu ưu tiên tới Kho.'
+        },
+        output: {
+            targetRole: UserRole.WAREHOUSE,
+            uiDescription: 'Kho thấy yêu cầu Giao gấp.',
+            nextAction: 'Kho chấp nhận hoặc từ chối.'
+        }
+    },
+    // --- ACTION CỦA KHO: CHẤP NHẬN ĐƠN GẤP ---
+    {
+        id: 'WH_URGENT_ACCEPT',
+        group: 'EXCEPTION',
+        name: 'Kho Chấp Nhận Đơn Gấp',
+        description: 'Kho đồng ý đưa đơn gấp vào kế hoạch soạn.',
+        actor: UserRole.WAREHOUSE,
+        input: {
+            actionName: 'Chấp nhận Giao gấp',
+            condition: 'Sale đã yêu cầu Urgent'
+        },
+        process: {
+            triggerAction: 'TRIGGER_WH_ACCEPT_URGENT',
+            apiTrigger: 'notifySaleOnUrgentResponse (ACCEPTED)',
+            notificationTag: 'WH_URGENT_ACCEPTED',
+            nextStatus: 'KEEP_CURRENT',
+            logicDesc: 'Cập nhật urgentRequest = ACCEPTED.'
+        },
+        output: {
+            targetRole: UserRole.SALE,
+            uiDescription: 'Sale nhận thông tin Kho đã nhận đơn gấp.',
+            nextAction: 'Sale thực hiện lệnh Giao & Chốt.'
+        }
+    },
+    // --- ACTION CỦA KHO: TỪ CHỐI ĐƠN GẤP ---
+    {
+        id: 'WH_URGENT_REJECT',
+        group: 'EXCEPTION',
+        name: 'Kho Từ Chối Đơn Gấp',
+        description: 'Kho từ chối xử lý đơn gấp do quá tải hoặc lý do khác.',
+        actor: UserRole.WAREHOUSE,
+        input: {
+            actionName: 'Từ chối Giao gấp',
+            condition: 'Sale đã yêu cầu Urgent'
+        },
+        process: {
+            triggerAction: 'TRIGGER_WH_REJECT_URGENT',
+            apiTrigger: 'notifySaleOnUrgentResponse (REJECTED)',
+            notificationTag: 'WH_URGENT_REJECTED',
+            nextStatus: 'KEEP_CURRENT',
+            logicDesc: 'Cập nhật urgentRequest = REJECTED.'
+        },
+        output: {
+            targetRole: UserRole.SALE,
+            uiDescription: 'Sale nhận thông tin Kho từ chối đơn gấp.',
+            nextAction: 'Sale chờ đến hạn hoặc xử lý khác.'
         }
     }
 ];

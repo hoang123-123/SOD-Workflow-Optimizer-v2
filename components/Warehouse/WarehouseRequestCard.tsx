@@ -1,0 +1,266 @@
+import React, { useState } from 'react';
+import { SOD } from '../../types';
+import { StatusBadge } from '../Badge';
+import { executeBusinessRule } from '../../logic/ruleEngine';
+import {
+    ChevronDown,
+    Box,
+    Search,
+    Loader2,
+    BellRing,
+    Scale,
+    AlertTriangle,
+    FileText,
+    CheckCircle2,
+    Hourglass
+} from 'lucide-react';
+
+interface WarehouseRequestCardProps {
+    sod: SOD;
+    recordId: string;
+    onUpdate: (updatedSOD: SOD) => void;
+    onSaveState?: (updatedSOD: SOD) => Promise<void>;
+    currentDepartment?: string;
+    currentRole: any;
+}
+
+/**
+ * [NEW STYLE] BENTO CARD - CHUYÊN CHO BÁO CÁO SAI LỆCH
+ * Phù hợp khi Kho kiểm đếm thực tế phát hiện tồn kho hệ thống hoặc đơn vị quy đổi có vấn đề.
+ */
+export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
+    sod,
+    recordId,
+    onUpdate,
+    onSaveState,
+    currentDepartment,
+    currentRole
+}) => {
+    const [isDiscoveryExpanded, setIsDiscoveryExpanded] = useState<boolean>(true);
+    const [isNotifying, setIsNotifying] = useState(false);
+
+    // --- STATE CHO WAREHOUSE DISCOVERY (KIỂM ĐẾM) ---
+    const [inputWarehouseQty, setInputWarehouseQty] = useState<string>('0');
+    const [inputOrderQty, setInputOrderQty] = useState<string>('0');
+    const [discrepancyType, setDiscrepancyType] = useState<'INVENTORY' | 'CONVERSION_RATE'>('INVENTORY');
+
+    const handleWarehouseDiscoverySubmit = async () => {
+        setIsNotifying(true);
+        try {
+            const qtyAvailReal = parseFloat(inputWarehouseQty.replace(',', '.')) || 0;
+            const qtyOrdReal = parseFloat(inputOrderQty.replace(',', '.')) || 0;
+
+            const updatedSod = await executeBusinessRule(
+                'WH_REPORT',
+                sod,
+                recordId,
+                {
+                    actualQty: qtyAvailReal,
+                    requestedQty: qtyOrdReal,
+                    discrepancyType: discrepancyType,
+                    dept: currentDepartment,
+                    actor: currentRole
+                }
+            );
+
+            onUpdate(updatedSod);
+            if (onSaveState) await onSaveState(updatedSod);
+
+        } catch (error) {
+            console.error("Warehouse submit error", error);
+        } finally {
+            setIsNotifying(false);
+        }
+    };
+
+    const isSubmitted = !!sod.warehouseVerification;
+    const isSaleResponded = !!sod.saleDecision && isSubmitted;
+
+    const renderSubmittedView = () => {
+        if (!sod.warehouseVerification) return null;
+        const v = sod.warehouseVerification;
+
+        return (
+            <div className="bg-white border-2 border-indigo-100 rounded-[1.5rem] p-8 shadow-sm">
+                <div className="flex items-start gap-6 mb-8">
+                    <div className={`p-4 rounded-2xl shadow-sm shrink-0 border-2 ${isSaleResponded ? 'bg-emerald-50 border-emerald-100 text-emerald-500' : 'bg-indigo-50 border-indigo-100 text-indigo-500'}`}>
+                        {isSaleResponded ? <CheckCircle2 className="w-6 h-6" /> : <Hourglass className="w-6 h-6" />}
+                    </div>
+                    <div className="flex-1">
+                        <h4 className={`text-xl font-black mb-1 uppercase tracking-tighter ${isSaleResponded ? 'text-emerald-800' : 'text-indigo-800'}`}>
+                            {isSaleResponded ? 'Sale đã xử lý báo cáo' : 'Đang chờ Sale phản hồi'}
+                        </h4>
+                        <p className="text-sm text-gray-500 font-medium leading-relaxed">
+                            {isSaleResponded
+                                ? 'Bộ phận Sale đã ghi nhận sai lệch và đưa ra phương án xử lý mới.'
+                                : 'Yêu cầu của bạn đã được gửi tới Sale. Vui lòng chờ phản hồi để tiếp tục quy trình.'}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Số lượng kho báo</div>
+                        <div className="text-xl font-black text-gray-900">{v.actualQty} <span className="text-xs text-gray-400 font-bold uppercase">{sod.unitWarehouseName}</span></div>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Số lượng đơn thực tế</div>
+                        <div className="text-xl font-black text-gray-900">{v.requestedQty} <span className="text-xs text-gray-400 font-bold uppercase">{sod.unitOrderName}</span></div>
+                    </div>
+                    <div className="p-4 bg-gray-100 rounded-2xl border border-gray-200">
+                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Loại sai lệch</div>
+                        <div className="text-sm font-black text-gray-900 uppercase">
+                            {v.discrepancyType === 'INVENTORY' ? 'Lệch tồn kho vật lý' : 'Lệch tỷ lệ quy đổi'}
+                        </div>
+                    </div>
+                </div>
+
+                {isSaleResponded && (
+                    <div className="p-5 bg-emerald-50 border-2 border-emerald-100 rounded-2xl">
+                        <div className="flex items-center gap-3 text-emerald-700 font-black text-xs uppercase tracking-tight">
+                            <CheckCircle2 className="w-4 h-4" />
+                            Phương án của Sale: {sod.saleDecision?.action === 'CANCEL_ORDER' ? 'Hủy đơn' : 'Giao hàng đợt này'}
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    return (
+        <div className={`bg-white border-2 rounded-[2rem] transition-all overflow-hidden shadow-sm hover:shadow-md mb-6 ${isSubmitted ? 'border-indigo-100' : 'border-amber-100 dark:border-amber-900/30'}`}>
+            {/* Header: Basic Info */}
+            <div className={`px-8 py-6 flex items-center justify-between border-b ${isSubmitted ? 'border-indigo-50 bg-indigo-50/10' : 'border-amber-50 bg-amber-50/10'}`}>
+                <div className="flex items-start gap-4 flex-1">
+                    <div className={`p-3 rounded-2xl border shadow-sm shrink-0 ${isSubmitted ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                        <Scale className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <div className="font-black text-gray-900 text-lg uppercase tracking-tighter leading-tight">{sod.detailName}</div>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] font-black bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-lg border border-indigo-200/50">{sod.product.sku}</span>
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-tight ${isSubmitted ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-amber-100 text-amber-700 border-amber-200/50'}`}>
+                                {isSubmitted ? 'Đã báo cáo sai lệch' : 'KHO: BÁO CÁO SAI LỆCH'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <StatusBadge sod={sod} />
+                    <button
+                        onClick={() => setIsDiscoveryExpanded(!isDiscoveryExpanded)}
+                        className={`p-2 rounded-xl transition-all ${isDiscoveryExpanded ? (isSubmitted ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600') : 'bg-gray-100 text-gray-400 rotate-180'}`}
+                    >
+                        <ChevronDown className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Content: The Bento Discovery Box (Matching Mockup) */}
+            {isDiscoveryExpanded && (
+                <div className={`p-8 ${isSubmitted ? 'bg-indigo-50/20' : 'bg-amber-50/20'}`}>
+                    {isSubmitted ? renderSubmittedView() : (
+                        <div className="bg-[#FFF9EA] border-2 border-[#FFE8B3] rounded-[1.5rem] p-8 shadow-sm">
+                            <div className="flex items-start gap-6 mb-8">
+                                <div className="p-4 bg-white border-2 border-amber-100 rounded-2xl shadow-sm shrink-0">
+                                    <Search className="w-6 h-6 text-amber-500" />
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="text-xl font-black text-[#855D00] mb-1 uppercase tracking-tighter">Báo cáo kiểm đếm thực tế</h4>
+                                    <p className="text-sm text-[#855D00]/70 font-medium leading-relaxed">Sử dụng chức năng này nếu bạn phát hiện số liệu tồn kho hệ thống không khớp với thực tế hoặc có vấn đề về quy đổi đơn vị.</p>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col xl:flex-row items-end gap-6 mb-8">
+                                {/* Input 1 */}
+                                <div className="flex-1 w-full space-y-2.5">
+                                    <div className="text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2 ml-1">
+                                        <Box className="w-3 h-3" /> SỐ LƯỢNG KHO
+                                    </div>
+                                    <div className="relative group">
+                                        <input
+                                            type="number" step="any"
+                                            className="w-full h-14 rounded-2xl border-2 border-amber-200 bg-white px-5 text-xl font-black text-gray-900 focus:border-amber-500 transition-all outline-none"
+                                            value={inputWarehouseQty}
+                                            onChange={(e) => setInputWarehouseQty(e.target.value)}
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                        <div className="absolute right-3 top-3 bottom-3 flex items-center">
+                                            <div className="h-full px-3 flex items-center bg-gray-50 border border-gray-200 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                                {sod.unitWarehouseName || 'SP'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Input 2 */}
+                                <div className="flex-1 w-full space-y-2.5">
+                                    <div className="text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2 ml-1">
+                                        <FileText className="w-3 h-3" /> SỐ LƯỢNG ĐƠN
+                                    </div>
+                                    <div className="relative group">
+                                        <input
+                                            type="number" step="any"
+                                            className="w-full h-14 rounded-2xl border-2 border-amber-200 bg-white px-5 text-xl font-black text-gray-900 focus:border-amber-500 transition-all outline-none"
+                                            value={inputOrderQty}
+                                            onChange={(e) => setInputOrderQty(e.target.value)}
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                        <div className="absolute right-3 top-3 bottom-3 flex items-center">
+                                            <div className="h-full px-3 flex items-center bg-gray-50 border border-gray-200 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                                {sod.unitOrderName || 'SP'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Select */}
+                                <div className="flex-1 w-full space-y-2.5">
+                                    <div className="text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2 ml-1">
+                                        <AlertTriangle className="w-3 h-3" /> LOẠI SAI LỆCH
+                                    </div>
+                                    <div className="relative">
+                                        <select
+                                            className="w-full h-14 rounded-2xl border-2 border-amber-200 bg-white px-5 pr-12 text-sm font-black text-gray-900 appearance-none focus:border-amber-500 transition-all outline-none cursor-pointer"
+                                            value={discrepancyType}
+                                            onChange={(e) => setDiscrepancyType(e.target.value as any)}
+                                        >
+                                            <option value="INVENTORY">Lệch tồn kho vật lý</option>
+                                            <option value="CONVERSION_RATE">Lệch tỷ lệ quy đổi</option>
+                                        </select>
+                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-600 pointer-events-none" />
+                                    </div>
+                                </div>
+
+                                {/* Submit Button */}
+                                <button
+                                    onClick={handleWarehouseDiscoverySubmit}
+                                    disabled={isNotifying}
+                                    className="h-14 px-8 bg-[#D97706] hover:bg-[#B45309] text-white rounded-2xl shadow-xl shadow-amber-900/10 active:scale-95 transition-all flex items-center gap-3 disabled:bg-gray-400 font-black text-sm uppercase tracking-widest"
+                                >
+                                    {isNotifying ? <Loader2 className="w-5 h-5 animate-spin" /> : <BellRing className="w-5 h-5" />}
+                                    Request Sale
+                                </button>
+                            </div>
+
+                            {/* Note Box */}
+                            <div className="bg-white border-2 border-amber-100/50 rounded-2xl p-5 shadow-sm">
+                                <div className="flex items-start gap-4">
+                                    <Scale className="w-5 h-5 text-amber-500 mt-1 shrink-0" />
+                                    <div>
+                                        <div className="text-xs font-black text-amber-800 mb-1.5 flex items-center gap-2">Lưu ý: Bạn đang gửi request:</div>
+                                        <ul className="text-xs text-amber-900/60 font-medium space-y-1 list-disc pl-4 uppercase tracking-tight">
+                                            <li>Tồn kho thực tế: <span className="text-amber-700 font-bold">{inputWarehouseQty} {sod.unitWarehouseName}</span></li>
+                                            <li>Số lượng đơn hàng: <span className="text-amber-700 font-bold">{inputOrderQty} {sod.unitOrderName}</span></li>
+                                            <li>Nguyên nhân: <span className="text-amber-700 font-bold">{discrepancyType === 'INVENTORY' ? 'Sai lệch tồn kho vật lý' : 'Sai lệch tỷ lệ quy đổi'}</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};

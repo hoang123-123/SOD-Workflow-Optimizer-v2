@@ -9,7 +9,7 @@ const getIndices = (sod: SOD) => {
     const N = sod.qtyOrdered - sod.qtyDelivered; // Nhu cầu (Net Need)
     const L = sod.qtyAvailable || 0; // Tồn kho khả dụng (Logistics)
     const unit = sod.unitOrderName || 'SP';
-    
+
     // [NEW] Warehouse unit conversion info
     const unitWarehouse = sod.unitWarehouseName || unit;
     const rate = sod.conversionRate || 1;
@@ -42,46 +42,40 @@ export const buildSaleToSourcePayload = (sod: SOD, recordId: string): Notificati
             NhuCau: N,
             TonKho: L,
             ThieuHut: missing,
-            LanGiao: k
+            LanGiao: k,
+            Actor: "SALE",
+            ActionCode: k === 1 ? "C1_WAIT_ALL" : "C2_WAIT_MORE"
         },
         Timestamp: new Date().toISOString()
     };
 };
 
 /**
- * TEMPLATE 2: SALE -> WAREHOUSE (Lệnh xuất kho)
+ * TEMPLATE 2A: SALE -> WAREHOUSE (Factory - Chỉ giao, KHÔNG chốt)
  */
-export const buildSaleToWarehousePayload = (sod: SOD, recordId: string, quantityToShip?: number): NotificationPayload => {
-    const { k, N, L, unit, unitWarehouse, rate } = getIndices(sod);
-    
-    // [UPDATED] Xác định số lượng xuất:
-    const actualShipQty = quantityToShip !== undefined 
-        ? quantityToShip 
-        : (sod.warehouseVerification?.requestedQty ?? L);
+export const buildFactoryShipPayload = (sod: SOD, recordId: string, quantityToShip: number): NotificationPayload => {
+    const { k, N, unit, unitWarehouse, rate } = getIndices(sod);
 
+    const actualShipQty = quantityToShip;
     const actualShipQtyWh = parseFloat((actualShipQty * rate).toFixed(2));
+    const remaining = Math.max(0, N - actualShipQty);
 
-    // [RULE CHANGE]: Mọi hành động giao hàng đều là "Giao & Chốt" (Không treo dở dang SOD)
-    // Type luôn là SALE_TO_WAREHOUSE_CHOT_DON
-    
-    // Tính số lượng giảm (để ERP biết cần hủy bao nhiêu)
-    // NumSOD âm = Giảm số lượng đặt
-    // Ví dụ: Cần 10, Giao 8 => Hủy 2 (numSOD = -2)
-    // ERP: OldQty(10) + (-2) = 8 (Khớp số thực giao)
-    const numSOD = actualShipQty - N; 
+    const message = `[NHÀ MÁY] Yêu cầu xuất kho (Lần ${k}): ${actualShipQty} ${unit} (${actualShipQtyWh} ${unitWarehouse}). Còn lại ${remaining} ${unit} sẽ giao sau.`;
 
-    const message = `Yêu cầu xuất kho (Lần ${k}): ${actualShipQty} ${unit} (${actualShipQtyWh} ${unitWarehouse}) và CHỐT dòng hàng (Hủy phần thiếu).`;
-
-    const details = { 
-        SoLuongXuat: actualShipQty, 
+    const details = {
+        SoLuongXuat: actualShipQty,
         SoLuongXuatKho: actualShipQtyWh,
-        LanGiao: k, 
-        Loai: "Giao & Chốt", 
-        GiamSoLuongDat: numSOD 
+        LanGiao: k,
+        Loai: "Giao", // KHÔNG có "& Chốt"
+        CustomerType: "FACTORY",
+        ConLai: remaining,
+        OriginalQty: sod.qtyOrdered,
+        Actor: "SALE",
+        ActionCode: k === 1 ? "C1_SHIP_FACTORY" : "C2_SHIP_FACTORY"
     };
 
     return {
-        Type: "SALE_TO_WAREHOUSE_CHOT_DON",
+        Type: "SALE_SHIP_FACTORY", // [NEW] Type riêng cho Factory
         SodId: sod.id,
         RecordId: recordId,
         SodName: sod.detailName,
@@ -93,23 +87,79 @@ export const buildSaleToWarehousePayload = (sod: SOD, recordId: string, quantity
 };
 
 /**
+ * TEMPLATE 2B: SALE -> WAREHOUSE (Standard - Giao & Chốt)
+ */
+export const buildStandardShipPayload = (sod: SOD, recordId: string, quantityToShip: number): NotificationPayload => {
+    const { k, N, unit, unitWarehouse, rate } = getIndices(sod);
+
+    const actualShipQty = quantityToShip;
+    const actualShipQtyWh = parseFloat((actualShipQty * rate).toFixed(2));
+
+    // Tính số lượng giảm (để ERP biết cần hủy bao nhiêu)
+    const numSOD = actualShipQty - N;
+
+    const message = `Yêu cầu xuất kho (Lần ${k}): ${actualShipQty} ${unit} (${actualShipQtyWh} ${unitWarehouse}) và CHỐT dòng hàng (Hủy phần thiếu).`;
+
+    const details = {
+        SoLuongXuat: actualShipQty,
+        SoLuongXuatKho: actualShipQtyWh,
+        LanGiao: k,
+        Loai: "Giao & Chốt",
+        CustomerType: "STANDARD",
+        GiamSoLuongDat: numSOD,
+        OriginalQty: sod.qtyOrdered,
+        Actor: "SALE",
+        ActionCode: k === 1 ? "C1_SHIP_CLOSE" : "C2_SHIP_CLOSE"
+    };
+
+    return {
+        Type: "SALE_SHIP_AND_CLOSE", // [NEW] Type riêng cho Standard
+        SodId: sod.id,
+        RecordId: recordId,
+        SodName: sod.detailName,
+        Sku: sod.product.sku,
+        Message: message,
+        Details: details,
+        Timestamp: new Date().toISOString()
+    };
+};
+
+/**
+ * [DEPRECATED] Giữ lại để backward compatibility, sẽ xóa sau
+ */
+export const buildSaleToWarehousePayload = (sod: SOD, recordId: string, quantityToShip?: number): NotificationPayload => {
+    const qty = quantityToShip ?? (sod.qtyAvailable || 0);
+    return buildStandardShipPayload(sod, recordId, qty);
+};
+
+/**
  * TEMPLATE 3: SALE -> CANCEL (Hủy hoặc Dừng giao)
  */
 export const buildSaleCancelPayload = (sod: SOD, recordId: string): NotificationPayload => {
     const { k, N, L } = getIndices(sod);
-    
+
     let type: NotificationPayload["Type"] = "SALE_HUY_DON";
     let message = "";
     let details: any = {};
 
     if (k === 1) {
         type = "SALE_HUY_DON";
-        message = "Khách hàng hủy đơn,không đồng ý chờ.";
-        details = { NhuCauHuy: N, TonKhoHienTai: L };
+        message = "Khách hàng hủy đơn, không đồng ý chờ.";
+        details = {
+            NhuCauHuy: N,
+            TonKhoHienTai: L,
+            Actor: "SALE",
+            ActionCode: "C1_CANCEL"
+        };
     } else {
         type = "SALE_CHOT_DON";
         message = `Dừng giao hàng tại lần ${k}. Chốt số lượng thực giao là ${sod.qtyDelivered}.`;
-        details = { TongDaGiao: sod.qtyDelivered, LanDung: k };
+        details = {
+            TongDaGiao: sod.qtyDelivered,
+            LanDung: k,
+            Actor: "SALE",
+            ActionCode: "C2_STOP"
+        };
     }
 
     return {
@@ -154,13 +204,13 @@ export const buildSourceToSalePayload = (sod: SOD, recordId: string): Notificati
  */
 export const buildWarehouseReportPayload = (sod: SOD, recordId: string): NotificationPayload => {
     const { N, unit, unitWarehouse, N_wh } = getIndices(sod);
-    
+
     // actual: Số lượng thực tế tại kho (Đơn vị kho)
     const actual = sod.warehouseVerification?.actualQty || 0;
-    
+
     // requested: Khả năng đáp ứng đơn (Đơn vị đơn hàng)
     const requested = sod.warehouseVerification?.requestedQty || 0;
-    
+
     // Shortage: Tính theo đơn vị đơn hàng
     const shortage = Math.max(0, N - requested);
 
@@ -200,15 +250,15 @@ export const buildWarehouseReportPayload = (sod: SOD, recordId: string): Notific
  */
 export const buildWarehouseConfirmationPayload = (sod: SOD, recordId: string, status: 'CONFIRMED' | 'REJECTED', reason?: string): NotificationPayload => {
     const isConfirmed = status === 'CONFIRMED';
-    
+
     return {
         Type: isConfirmed ? "WAREHOUSE_CONFIRM_EXPORT" : "WAREHOUSE_REJECT_EXPORT",
         SodId: sod.id,
         RecordId: recordId,
         SodName: sod.detailName,
         Sku: sod.product.sku,
-        Message: isConfirmed 
-            ? `✅ Kho Xác nhận xuất hàng.` 
+        Message: isConfirmed
+            ? `✅ Kho Xác nhận xuất hàng.`
             : `⛔ Kho TỪ CHỐI xuất hàng. Lý do: ${reason}`,
         Details: {
             TrangThai: status,
@@ -227,7 +277,7 @@ export const buildPickingDeptPayload = (sod: SOD, recordId: string): Notificatio
     const quantity = sod.saleDecision?.quantity || 0;
     const { unit, unitWarehouse } = getIndices(sod);
     const rate = sod.conversionRate || 1;
-    
+
     // Tính toán số lượng theo đơn vị kho
     const quantityWh = parseFloat((quantity * rate).toFixed(2));
 
@@ -238,10 +288,10 @@ export const buildPickingDeptPayload = (sod: SOD, recordId: string): Notificatio
         SodName: sod.detailName,
         Sku: sod.product.sku,
         Message: `Lệnh soạn hàng mới: ${quantity} ${unit} (${quantityWh} ${unitWarehouse}).`,
-        Details: { 
+        Details: {
             SoLuongCanSoan: quantity,
             SoLuongCanSoanKho: quantityWh,
-            ViTriKho: sod.warehouseLocation 
+            ViTriKho: sod.warehouseLocation
         },
         Timestamp: new Date().toISOString()
     };

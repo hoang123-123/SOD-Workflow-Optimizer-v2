@@ -8,7 +8,7 @@ interface BadgeProps {
 }
 
 export const StatusBadge: React.FC<BadgeProps> = ({ sod }) => {
-  const baseClasses = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border transition-colors";
+  const baseClasses = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider transition-all duration-300 shadow-sm whitespace-nowrap";
 
   switch (sod.status) {
     case SODStatus.SUFFICIENT:
@@ -34,46 +34,46 @@ export const StatusBadge: React.FC<BadgeProps> = ({ sod }) => {
       );
     case SODStatus.RESOLVED:
       // LOGIC MỚI: Phân loại trạng thái Resolved dựa trên Sale Decision và Warehouse Confirmation
-      
+
       // 1. Nếu Sale chọn HỦY (CANCEL_ORDER)
       if (sod.saleDecision?.action === 'CANCEL_ORDER') {
-           return (
-            <span className={`${baseClasses} bg-gray-100 text-gray-600 border-gray-200`}>
-              <Ban className="w-3.5 h-3.5" />
-              Đã Chốt (Dừng Giao)
-            </span>
-          );
+        return (
+          <span className={`${baseClasses} bg-gray-100 text-gray-600 border-gray-200`}>
+            <Ban className="w-3.5 h-3.5" />
+            Đã Chốt (Dừng Giao)
+          </span>
+        );
       }
 
       // 2. Nếu Sale chọn GIAO (SHIP_PARTIAL)
       if (sod.saleDecision?.action === 'SHIP_PARTIAL') {
-          // 2a. Kho chưa xác nhận -> CHỜ KHO
-          if (!sod.warehouseConfirmation) {
-              return (
-                <span className={`${baseClasses} bg-indigo-50 text-indigo-700 border-indigo-200 animate-pulse`}>
-                  <Warehouse className="w-3.5 h-3.5" />
-                  Chờ Kho Xử Lý
-                </span>
-              );
-          }
-          // 2b. Kho TỪ CHỐI
-          if (sod.warehouseConfirmation.status === 'REJECTED') {
-               return (
-                <span className={`${baseClasses} bg-red-50 text-red-700 border-red-200`}>
-                  <ShieldAlert className="w-3.5 h-3.5" />
-                  Kho Từ Chối Xuất
-                </span>
-              );
-          }
-           // 2c. Kho ĐÃ XUẤT (CONFIRMED)
-           return (
-            <span className={`${baseClasses} bg-blue-50 text-blue-700 border-blue-200`}>
-              <PackageCheck className="w-3.5 h-3.5" />
-              Hoàn Tất Xuất Kho
+        // 2a. Kho chưa xác nhận -> CHỜ KHO
+        if (!sod.warehouseConfirmation) {
+          return (
+            <span className={`${baseClasses} bg-indigo-50 text-indigo-700 border-indigo-200 animate-pulse`}>
+              <Warehouse className="w-3.5 h-3.5" />
+              Chờ Kho Xử Lý
             </span>
           );
+        }
+        // 2b. Kho TỪ CHỐI
+        if (sod.warehouseConfirmation.status === 'REJECTED') {
+          return (
+            <span className={`${baseClasses} bg-red-50 text-red-700 border-red-200`}>
+              <ShieldAlert className="w-3.5 h-3.5" />
+              Kho Từ Chối Xuất
+            </span>
+          );
+        }
+        // 2c. Kho ĐÃ XUẤT (CONFIRMED)
+        return (
+          <span className={`${baseClasses} bg-blue-50 text-blue-700 border-blue-200`}>
+            <PackageCheck className="w-3.5 h-3.5" />
+            Hoàn Tất Xuất Kho
+          </span>
+        );
       }
-      
+
       // Default fallback (Trường hợp dữ liệu cũ hoặc case Wait All đã xong)
       return (
         <span className={`${baseClasses} bg-blue-50 text-blue-700 border-blue-200`}>

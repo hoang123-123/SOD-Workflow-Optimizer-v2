@@ -1,238 +1,235 @@
 
 import React, { useState } from 'react';
-import { X, BookOpen, UserCircle2, Factory, Warehouse, CheckCircle2, AlertTriangle, HelpCircle, ArrowRight } from 'lucide-react';
+import { X, BookOpen, UserCircle2, Factory, Warehouse, CheckCircle2, AlertTriangle, HelpCircle, ArrowRight, Truck, RotateCw, Ban } from 'lucide-react';
 
 interface UserManualProps {
-  isOpen: boolean;
-  onClose: () => void;
+    isOpen: boolean;
+    onClose: () => void;
 }
 
 export const UserManual: React.FC<UserManualProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
+    if (!isOpen) return null;
 
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'SALE' | 'SOURCE' | 'WAREHOUSE'>('OVERVIEW');
+    const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'SALE' | 'SOURCE' | 'WAREHOUSE'>('OVERVIEW');
 
-  const tabs = [
-      { id: 'OVERVIEW', label: 'Tổng quan', icon: HelpCircle },
-      { id: 'SALE', label: 'Dành cho Sale', icon: UserCircle2 },
-      { id: 'SOURCE', label: 'Dành cho Source', icon: Factory },
-      { id: 'WAREHOUSE', label: 'Dành cho Kho', icon: Warehouse },
-  ];
+    const tabs = [
+        { id: 'OVERVIEW', label: 'TỔNG QUAN', icon: HelpCircle },
+        { id: 'SALE', label: 'DÀNH CHO SALE', icon: UserCircle2 },
+        { id: 'SOURCE', label: 'DÀNH CHO SOURCE', icon: Factory },
+        { id: 'WAREHOUSE', label: 'DÀNH CHO KHO', icon: Warehouse },
+    ];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50">
-          <div className="flex items-center gap-3">
-             <div className="p-2 bg-blue-600 rounded-lg text-white shadow-sm">
-                <BookOpen className="w-5 h-5" />
-             </div>
-             <div>
-                <h2 className="text-xl font-bold text-gray-800">Hướng dẫn sử dụng</h2>
-                <p className="text-sm text-gray-500">Quy trình xử lý đơn hàng thiếu hụt (Shortage Management)</p>
-             </div>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
-            <X className="w-6 h-6 text-gray-500" />
-          </button>
-        </div>
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+            <div className="bg-slate-950 rounded-[2.5rem] shadow-[0_0_100px_-20px_rgba(79,70,229,0.3)] w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden border border-slate-800">
 
-        {/* Body Layout */}
-        <div className="flex flex-1 overflow-hidden">
-            {/* Sidebar Tabs */}
-            <div className="w-64 bg-gray-50 border-r border-gray-100 p-4 space-y-2 hidden md:block overflow-y-auto">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                            activeTab === tab.id 
-                            ? 'bg-white text-blue-600 shadow-md border border-gray-100 ring-1 ring-black/5' 
-                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                        }`}
-                    >
-                        <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-blue-600' : 'text-gray-400'}`} />
-                        {tab.label}
+                {/* Header */}
+                <div className="flex items-center justify-between p-8 border-b border-slate-800 bg-slate-900/50">
+                    <div className="flex items-center gap-6">
+                        <div className="p-4 bg-indigo-500 rounded-2xl text-slate-950 shadow-2xl shadow-indigo-500/50">
+                            <BookOpen className="w-8 h-8" />
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-black text-white uppercase tracking-tighter">User Manual</h2>
+                            <p className="text-xs font-black text-indigo-400 uppercase tracking-widest mt-1">Shortage Management Workflow v2.0</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-3 bg-slate-900 hover:bg-slate-800 rounded-2xl border border-slate-800 text-slate-400 hover:text-white transition-all">
+                        <X className="w-8 h-8" />
                     </button>
-                ))}
-            </div>
+                </div>
 
-            {/* Content Area */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-white">
-                
-                {/* OVERVIEW CONTENT */}
-                {activeTab === 'OVERVIEW' && (
-                    <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                        <section>
-                            <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                                <HelpCircle className="w-5 h-5 text-blue-500" />
-                                Giới thiệu chung
-                            </h3>
-                            <p className="text-gray-600 leading-relaxed text-sm">
-                                Ứng dụng này giúp các bộ phận phối hợp xử lý các dòng hàng bị thiếu hụt (Shortage) trong đơn hàng. 
-                                Thay vì trao đổi qua Email/Chat rời rạc, mọi quyết định được ghi nhận trực tiếp tại đây để đảm bảo tính nhất quán.
-                            </p>
-                        </section>
-
-                        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="p-4 rounded-lg bg-indigo-50 border border-indigo-100">
-                                <div className="flex items-center gap-2 mb-2 font-bold text-indigo-700">
-                                    <UserCircle2 className="w-4 h-4" /> Sale
-                                </div>
-                                <p className="text-xs text-indigo-600">Quyết định phương án với khách hàng: Giao ngay, Chờ hàng, hoặc Chốt đơn.</p>
-                            </div>
-                            <div className="p-4 rounded-lg bg-amber-50 border border-amber-100">
-                                <div className="flex items-center gap-2 mb-2 font-bold text-amber-700">
-                                    <Factory className="w-4 h-4" /> Source
-                                </div>
-                                <p className="text-xs text-amber-600">Xác nhận ngày hàng về (ETA) nếu Sale chọn phương án "Chờ hàng".</p>
-                            </div>
-                            <div className="p-4 rounded-lg bg-blue-50 border border-blue-100">
-                                <div className="flex items-center gap-2 mb-2 font-bold text-blue-700">
-                                    <Warehouse className="w-4 h-4" /> Kho (Logistics)
-                                </div>
-                                <p className="text-xs text-blue-600">Thực hiện xuất kho hoặc báo cáo sự cố nếu Sale chọn "Giao ngay".</p>
-                            </div>
-                        </section>
-
-                        <section>
-                            <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">Quy trình cơ bản</h3>
-                            <div className="flex flex-col md:flex-row items-center gap-2 text-sm text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-100">
-                                <span className="font-semibold text-gray-800">1. Phát sinh thiếu</span>
-                                <ArrowRight className="w-4 h-4 text-gray-400 rotate-90 md:rotate-0" />
-                                <span className="font-semibold text-indigo-600">2. Sale chốt phương án</span>
-                                <ArrowRight className="w-4 h-4 text-gray-400 rotate-90 md:rotate-0" />
-                                <span className="font-semibold text-gray-800">3. Source/Kho thực hiện</span>
-                                <ArrowRight className="w-4 h-4 text-gray-400 rotate-90 md:rotate-0" />
-                                <span className="font-semibold text-emerald-600">4. Hoàn tất</span>
-                            </div>
-                        </section>
+                {/* Body Layout */}
+                <div className="flex flex-1 overflow-hidden">
+                    {/* Sidebar Tabs */}
+                    <div className="w-72 bg-slate-900/30 border-r border-slate-800 p-6 space-y-2 hidden md:block overflow-y-auto">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as any)}
+                                className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border ${activeTab === tab.id
+                                        ? 'bg-indigo-500 text-slate-950 shadow-xl shadow-indigo-500/20 border-indigo-500 scale-[1.02]'
+                                        : 'text-slate-500 border-transparent hover:bg-slate-900 hover:text-slate-300'
+                                    }`}
+                            >
+                                <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-slate-950' : 'text-slate-600'}`} />
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
-                )}
 
-                {/* SALE CONTENT */}
-                {activeTab === 'SALE' && (
-                    <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                        <div className="flex items-center gap-3 mb-4">
-                             <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
-                                <UserCircle2 className="w-6 h-6" />
-                             </div>
-                             <h3 className="text-xl font-bold text-indigo-900">Hướng dẫn dành cho Sale</h3>
-                        </div>
+                    {/* Content Area */}
+                    <div className="flex-1 overflow-y-auto p-12 bg-slate-950 custom-scrollbar">
 
-                        <div className="space-y-4">
-                            <div className="border border-indigo-100 rounded-lg overflow-hidden">
-                                <div className="bg-indigo-50 px-4 py-2 border-b border-indigo-100 font-semibold text-indigo-800 text-sm">
-                                    Các tùy chọn xử lý
+                        {/* OVERVIEW CONTENT */}
+                        {activeTab === 'OVERVIEW' && (
+                            <div className="space-y-10 animate-in slide-in-from-right-4 duration-300">
+                                <section className="bg-indigo-500/5 p-8 rounded-3xl border border-indigo-500/20 shadow-2xl relative overflow-hidden">
+                                    <h3 className="text-xl font-black text-white mb-4 flex items-center gap-3 uppercase tracking-tight">
+                                        <HelpCircle className="w-6 h-6 text-indigo-400" />
+                                        Giới thiệu chung
+                                    </h3>
+                                    <p className="text-slate-300 leading-relaxed text-sm font-medium">
+                                        Ứng dụng này giúp các bộ phận phối hợp xử lý các dòng hàng bị thiếu hụt (Shortage) trong đơn hàng.
+                                        Thay vì trao đổi qua Email/Chat rời rạc, mọi quyết định được ghi nhận trực tiếp tại đây để đảm bảo tính nhất quán.
+                                    </p>
+                                </section>
+
+                                <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl group">
+                                        <div className="flex items-center gap-3 mb-3 font-black text-indigo-400 uppercase tracking-widest text-[10px]">
+                                            <UserCircle2 className="w-5 h-5" /> Sale
+                                        </div>
+                                        <p className="text-xs text-slate-400 font-medium">Quyết định phương án với khách hàng: Giao ngay, Chờ hàng, hoặc Chốt đơn.</p>
+                                    </div>
+                                    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl group">
+                                        <div className="flex items-center gap-3 mb-3 font-black text-amber-400 uppercase tracking-widest text-[10px]">
+                                            <Factory className="w-5 h-5" /> Source
+                                        </div>
+                                        <p className="text-xs text-slate-400 font-medium">Xác nhận ngày hàng về (ETA) nếu Sale chọn phương án "Chờ hàng".</p>
+                                    </div>
+                                    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl group">
+                                        <div className="flex items-center gap-3 mb-3 font-black text-blue-400 uppercase tracking-widest text-[10px]">
+                                            <Warehouse className="w-5 h-5" /> Kho (Logistics)
+                                        </div>
+                                        <p className="text-xs text-slate-400 font-medium">Thực hiện xuất kho hoặc báo cáo sự cố nếu Sale chọn "Giao ngay".</p>
+                                    </div>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-[10px] font-black text-slate-600 mb-6 uppercase tracking-[0.2em] border-b border-slate-800 pb-3">Quy trình cơ bản</h3>
+                                    <div className="flex flex-col md:flex-row items-center gap-4 text-sm bg-slate-900/50 p-8 rounded-2xl border border-slate-800 justify-center">
+                                        <span className="font-black text-slate-300 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700">1. Phát sinh thiếu</span>
+                                        <ArrowRight className="w-6 h-6 text-slate-700 rotate-90 md:rotate-0" />
+                                        <span className="font-black text-indigo-400 bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-500/20">2. Sale chốt phương án</span>
+                                        <ArrowRight className="w-6 h-6 text-slate-700 rotate-90 md:rotate-0" />
+                                        <span className="font-black text-slate-300 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700">3. Source/Kho thực hiện</span>
+                                        <ArrowRight className="w-6 h-6 text-slate-700 rotate-90 md:rotate-0" />
+                                        <span className="font-black text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">4. Hoàn tất</span>
+                                    </div>
+                                </section>
+                            </div>
+                        )}
+
+                        {/* SALE CONTENT */}
+                        {activeTab === 'SALE' && (
+                            <div className="space-y-10 animate-in slide-in-from-right-4 duration-300">
+                                <div className="flex items-center gap-6">
+                                    <div className="p-4 bg-indigo-500/20 rounded-2xl text-indigo-400">
+                                        <UserCircle2 className="w-8 h-8" />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-white uppercase tracking-tight">Hướng dẫn dành cho Sale</h3>
                                 </div>
-                                <div className="divide-y divide-gray-100">
-                                    <div className="p-4 hover:bg-gray-50">
-                                        <h4 className="font-bold text-gray-800 text-sm mb-1">1. Giao ngay / Xác nhận giao (Ship Partial)</h4>
-                                        <p className="text-sm text-gray-600 mb-2">Chọn khi khách hàng đồng ý nhận trước số lượng đang có trong kho.</p>
-                                        <div className="flex items-center gap-2 text-xs text-indigo-600 bg-indigo-50 w-fit px-2 py-1 rounded">
-                                            <ArrowRight className="w-3 h-3" /> Hệ thống sẽ gửi yêu cầu xuống Kho để xuất hàng ngay.
+
+                                <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+                                    <div className="bg-indigo-500/10 px-8 py-4 border-b border-slate-800 font-black text-indigo-300 text-[10px] uppercase tracking-widest">
+                                        Các tùy chọn xử lý
+                                    </div>
+                                    <div className="divide-y divide-slate-800">
+                                        <div className="p-8 hover:bg-slate-800/30 transition-all group">
+                                            <h4 className="font-black text-white text-lg mb-2 flex items-center gap-3">
+                                                <Truck className="w-5 h-5 text-indigo-400" /> 1. Giao ngay (Ship Partial)
+                                            </h4>
+                                            <p className="text-sm text-slate-400 mb-4 font-medium leading-relaxed">Chọn khi khách hàng đồng ý nhận trước số lượng đang có trong kho.</p>
+                                            <div className="flex items-center gap-3 text-[10px] font-black text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 w-fit px-4 py-2 rounded-xl uppercase tracking-widest">
+                                                <ArrowRight className="w-3.5 h-3.5" /> Gửi yêu cầu xuống bộ phận Kho
+                                            </div>
+                                        </div>
+                                        <div className="p-8 hover:bg-slate-800/30 transition-all group">
+                                            <h4 className="font-black text-white text-lg mb-2 flex items-center gap-3">
+                                                <RotateCw className="w-5 h-5 text-amber-400" /> 2. Chờ hàng (Bổ sung sau)
+                                            </h4>
+                                            <p className="text-sm text-slate-400 mb-4 font-medium leading-relaxed">Chọn khi khách hàng muốn chờ hàng về rồi giao một thể.</p>
+                                            <div className="flex items-center gap-3 text-[10px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 w-fit px-4 py-2 rounded-xl uppercase tracking-widest">
+                                                <ArrowRight className="w-3.5 h-3.5" /> Chuyển Source xác nhận Ngày hàng về (ETA)
+                                            </div>
+                                        </div>
+                                        <div className="p-8 hover:bg-slate-800/30 transition-all group">
+                                            <h4 className="font-black text-white text-lg mb-2 flex items-center gap-3">
+                                                <Ban className="w-5 h-5 text-red-400" /> 3. Chốt đơn (Hủy phần thiếu)
+                                            </h4>
+                                            <p className="text-sm text-slate-400 mb-4 font-medium leading-relaxed">Chọn khi khách hàng không muốn mua sản phẩm này nữa hoặc không muốn chờ.</p>
+                                            <div className="flex items-center gap-3 text-[10px] font-black text-red-400 bg-red-500/10 border border-red-500/20 w-fit px-4 py-2 rounded-xl uppercase tracking-widest">
+                                                <ArrowRight className="w-3.5 h-3.5" /> Đóng dòng hàng và cập nhật kết quả
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="p-4 hover:bg-gray-50">
-                                        <h4 className="font-bold text-gray-800 text-sm mb-1">2. Chờ hàng (Bổ sung sau)</h4>
-                                        <p className="text-sm text-gray-600 mb-2">Chọn khi khách hàng muốn chờ hàng về rồi giao một thể.</p>
-                                        <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 w-fit px-2 py-1 rounded">
-                                            <ArrowRight className="w-3 h-3" /> Hệ thống chuyển yêu cầu sang bộ phận Nguồn hàng (Source) để xác nhận ETA.
-                                        </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* SOURCE CONTENT */}
+                        {activeTab === 'SOURCE' && (
+                            <div className="space-y-10 animate-in slide-in-from-right-4 duration-300">
+                                <div className="flex items-center gap-6">
+                                    <div className="p-4 bg-amber-500/20 rounded-2xl text-amber-400">
+                                        <Factory className="w-8 h-8" />
                                     </div>
-                                    <div className="p-4 hover:bg-gray-50">
-                                        <h4 className="font-bold text-gray-800 text-sm mb-1">3. Chốt đơn (Hủy phần thiếu)</h4>
-                                        <p className="text-sm text-gray-600 mb-2">Chọn khi khách hàng không muốn mua sản phẩm này nữa hoặc không muốn chờ.</p>
-                                        <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 w-fit px-2 py-1 rounded">
-                                            <ArrowRight className="w-3 h-3" /> Đơn hàng sẽ chốt số lượng thực tế và đóng lại.
+                                    <h3 className="text-2xl font-black text-white uppercase tracking-tight">Hướng dẫn dành cho Source</h3>
+                                </div>
+
+                                <div className="p-8 bg-amber-500/5 rounded-3xl border border-amber-500/20 text-slate-300 text-sm font-medium leading-relaxed shadow-xl">
+                                    Nhiệm vụ của Source là phản hồi thông tin <strong className="text-amber-400">Ngày hàng về (ETA)</strong> khi Sale chọn phương án "Chờ hàng".
+                                </div>
+
+                                <div className="space-y-6">
+                                    {[
+                                        { step: 1, title: "Nhận thông báo", desc: "Khi Sale chọn 'Chờ hàng', đơn hàng chuyển sang 'Chờ Source Xử Lý'." },
+                                        { step: 2, title: "Cập nhật kế hoạch", desc: "Nhập Ngày dự kiến (ETA) và Nguồn cung cấp vào form." },
+                                        { step: 3, title: "Xác nhận", desc: "Hệ thống tự động thông báo lại cho Sale sau khi bạn nhấn OK." }
+                                    ].map(item => (
+                                        <div key={item.step} className="flex gap-6 p-6 bg-slate-900 rounded-2xl border border-slate-800 group hover:border-amber-500/30 transition-all">
+                                            <div className="w-10 h-10 rounded-full bg-slate-800 text-amber-400 flex items-center justify-center font-black text-lg shadow-inner group-hover:bg-amber-500 group-hover:text-slate-950 transition-all">
+                                                {item.step}
+                                            </div>
+                                            <div>
+                                                <h4 className="font-black text-white uppercase tracking-widest text-[10px] mb-1">{item.title}</h4>
+                                                <p className="text-sm text-slate-400 font-medium">{item.desc}</p>
+                                            </div>
                                         </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* WAREHOUSE CONTENT */}
+                        {activeTab === 'WAREHOUSE' && (
+                            <div className="space-y-10 animate-in slide-in-from-right-4 duration-300">
+                                <div className="flex items-center gap-6">
+                                    <div className="p-4 bg-blue-500/20 rounded-2xl text-blue-400">
+                                        <Warehouse className="w-8 h-8" />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-white uppercase tracking-tight">Hướng dẫn dành cho Kho</h3>
+                                </div>
+
+                                <div className="p-8 bg-blue-500/5 rounded-3xl border border-blue-500/20 text-slate-300 text-sm font-medium leading-relaxed shadow-xl">
+                                    Kho chỉ tham gia xử lý khi Sale chọn phương án <strong className="text-blue-400">"Giao ngay (Ship Partial)"</strong>.
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="border border-slate-800 rounded-2xl p-8 bg-slate-900 group hover:border-emerald-500/30 transition-all">
+                                        <h4 className="font-black text-emerald-400 uppercase tracking-widest text-[10px] mb-4 flex items-center gap-3">
+                                            <CheckCircle2 className="w-5 h-5" /> Xác nhận Xuất
+                                        </h4>
+                                        <p className="text-sm text-slate-400 font-medium leading-relaxed">
+                                            Chọn khi hàng hóa thực tế đủ điều kiện và đã soạn xong. Hệ thống sẽ trừ tồn thực tế.
+                                        </p>
+                                    </div>
+                                    <div className="border border-slate-800 rounded-2xl p-8 bg-slate-900 group hover:border-red-500/30 transition-all">
+                                        <h4 className="font-black text-red-400 uppercase tracking-widest text-[10px] mb-4 flex items-center gap-3">
+                                            <AlertTriangle className="w-5 h-5" /> Từ chối Xuất
+                                        </h4>
+                                        <p className="text-sm text-slate-400 font-medium leading-relaxed">
+                                            Chọn khi hàng bị hỏng, thất lạc. <strong>Bắt buộc nhập lý do</strong> để báo cáo Sale.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
+
                     </div>
-                )}
-
-                {/* SOURCE CONTENT */}
-                {activeTab === 'SOURCE' && (
-                    <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                         <div className="flex items-center gap-3 mb-4">
-                             <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
-                                <Factory className="w-6 h-6" />
-                             </div>
-                             <h3 className="text-xl font-bold text-amber-900">Hướng dẫn dành cho Source</h3>
-                        </div>
-
-                        <div className="p-4 bg-amber-50 rounded-lg border border-amber-100 text-amber-800 text-sm leading-relaxed">
-                            Nhiệm vụ của Source là phản hồi thông tin <strong>Ngày hàng về (ETA)</strong> khi Sale chọn phương án "Chờ hàng".
-                        </div>
-
-                        <ul className="space-y-4">
-                            <li className="flex gap-3">
-                                <div className="mt-1 w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-xs shrink-0">1</div>
-                                <div>
-                                    <h4 className="font-bold text-gray-800 text-sm">Nhận thông báo</h4>
-                                    <p className="text-sm text-gray-600">Khi Sale chọn "Chờ hàng", trạng thái đơn hàng sẽ chuyển sang <strong>"Chờ Source Xử Lý"</strong>.</p>
-                                </div>
-                            </li>
-                            <li className="flex gap-3">
-                                <div className="mt-1 w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-xs shrink-0">2</div>
-                                <div>
-                                    <h4 className="font-bold text-gray-800 text-sm">Cập nhật kế hoạch</h4>
-                                    <p className="text-sm text-gray-600">Nhập <strong>Ngày dự kiến (ETA)</strong> và <strong>Nguồn cung cấp</strong> vào form.</p>
-                                </div>
-                            </li>
-                            <li className="flex gap-3">
-                                <div className="mt-1 w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-xs shrink-0">3</div>
-                                <div>
-                                    <h4 className="font-bold text-gray-800 text-sm">Xác nhận</h4>
-                                    <p className="text-sm text-gray-600">Nhấn nút <strong>"Xác nhận Kế hoạch"</strong>. Hệ thống sẽ tự động báo lại cho Sale để thông tin tới khách hàng.</p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                )}
-
-                 {/* WAREHOUSE CONTENT */}
-                 {activeTab === 'WAREHOUSE' && (
-                    <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                         <div className="flex items-center gap-3 mb-4">
-                             <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
-                                <Warehouse className="w-6 h-6" />
-                             </div>
-                             <h3 className="text-xl font-bold text-blue-900">Hướng dẫn dành cho Kho</h3>
-                        </div>
-
-                         <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 text-blue-800 text-sm leading-relaxed">
-                            Kho chỉ tham gia xử lý khi Sale chọn phương án <strong>"Giao ngay (Ship Partial)"</strong>. Nhiệm vụ là xác nhận thực xuất hoặc từ chối nếu hàng hỏng/mất.
-                        </div>
-
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <div className="border border-gray-200 rounded-lg p-4">
-                                 <h4 className="font-bold text-emerald-600 text-sm mb-2 flex items-center gap-2">
-                                     <CheckCircle2 className="w-4 h-4" /> Xác nhận Xuất
-                                 </h4>
-                                 <p className="text-xs text-gray-600">
-                                     Chọn khi hàng hóa thực tế trong kho đủ điều kiện và đã được soạn xong. Hệ thống sẽ trừ tồn kho và cập nhật trạng thái đã giao.
-                                 </p>
-                             </div>
-                             <div className="border border-gray-200 rounded-lg p-4">
-                                 <h4 className="font-bold text-red-600 text-sm mb-2 flex items-center gap-2">
-                                     <AlertTriangle className="w-4 h-4" /> Từ chối Xuất
-                                 </h4>
-                                 <p className="text-xs text-gray-600">
-                                     Chọn khi hàng trên hệ thống có nhưng thực tế bị hỏng, thất lạc. <strong>Bắt buộc nhập lý do</strong> để Sale biết và xử lý lại.
-                                 </p>
-                             </div>
-                         </div>
-                    </div>
-                )}
-
+                </div>
             </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };

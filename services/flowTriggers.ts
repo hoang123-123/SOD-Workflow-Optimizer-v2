@@ -20,7 +20,7 @@ const sendToFlow = async (payload: NotificationPayload, contextName: string): Pr
         });
 
         if (!response.ok) {
-            const softSuccessCodes = [502, 500, 503, 504, 400, 404, 401]; 
+            const softSuccessCodes = [502, 500, 503, 504, 400, 404, 401];
             if (softSuccessCodes.includes(response.status)) {
                 console.warn(`⚠️ [${contextName}] Flow returned ${response.status}. Treating as success for UI.`);
                 return true;
@@ -43,12 +43,18 @@ export const notifySourceOnSaleDecision = async (sod: any, recordId: string): Pr
 };
 
 /**
- * [CASE A1 & B1] Sale chọn "Giao ngay" (SHIP_PARTIAL)
+ * [CASE A1 & B1] Sale chọn "Giao ngay" (SHIP_PARTIAL hoặc SHIP_AND_CLOSE)
+ * @param isFactory - true nếu khách hàng là Nhà máy (chỉ giao, không chốt)
  */
-export const notifyWarehouseOnSaleShipment = async (sod: any, quantityToShip: number, recordId: string): Promise<boolean> => {
-    // [UPDATED] Pass quantityToShip into the template builder
-    const payload = Templates.buildSaleToWarehousePayload(sod, recordId, quantityToShip);
-    return await sendToFlow(payload, "Notify Warehouse");
+export const notifyWarehouseOnSaleShipment = async (sod: any, quantityToShip: number, recordId: string, isFactory: boolean = false): Promise<boolean> => {
+    console.log("!!! notifyWarehouseOnSaleShipment - isFactory:", isFactory);
+
+    // [NEW] Chọn template dựa trên loại khách hàng
+    const payload = isFactory
+        ? Templates.buildFactoryShipPayload(sod, recordId, quantityToShip)
+        : Templates.buildStandardShipPayload(sod, recordId, quantityToShip);
+
+    return await sendToFlow(payload, isFactory ? "Notify Warehouse (Factory)" : "Notify Warehouse (Standard)");
 };
 
 /**
@@ -89,4 +95,40 @@ export const notifySaleOnWarehouseConfirmation = async (sod: any, status: 'CONFI
 export const notifyPickingDeptOnSubmit = async (sod: any, recordId: string): Promise<boolean> => {
     const payload = Templates.buildPickingDeptPayload(sod, recordId);
     return await sendToFlow(payload, "Notify Picking Dept");
+};
+
+/**
+ * [MỚI] Sale yêu cầu giao gấp (Urgent Request)
+ */
+export const notifyWarehouseOnUrgentRequest = async (sod: any, recordId: string): Promise<boolean> => {
+    const payload: NotificationPayload = {
+        "Type": "SALE_URGENT_TO_WH",
+        "RecordId": recordId,
+        "SodId": sod.id,
+        "SodName": sod.detailName,
+        "SONumber": sod.soNumber,
+        "Sku": sod.product.sku,
+        "ProductName": sod.product.name,
+        "Message": `ĐƠN GẤP: Sale yêu cầu ưu tiên soạn hàng cho mã này.`,
+        "Timestamp": new Date().toISOString()
+    };
+    return await sendToFlow(payload, "Notify Urgent Request");
+};
+
+/**
+ * [MỚI] Kho phản hồi yêu cầu giao gấp (Urgent Response)
+ */
+export const notifySaleOnUrgentResponse = async (sod: any, status: 'ACCEPTED' | 'REJECTED', recordId: string): Promise<boolean> => {
+    const payload: NotificationPayload = {
+        "Type": status === 'ACCEPTED' ? "WH_URGENT_ACCEPTED" : "WH_URGENT_REJECTED",
+        "RecordId": recordId,
+        "SodId": sod.id,
+        "SodName": sod.detailName,
+        "SONumber": sod.soNumber,
+        "Sku": sod.product.sku,
+        "ProductName": sod.product.name,
+        "Message": status === 'ACCEPTED' ? "KHO ĐÃ CHẤP NHẬN ĐƠN GẤP" : "KHO TỪ CHỐI ĐƠN GẤP",
+        "Timestamp": new Date().toISOString()
+    };
+    return await sendToFlow(payload, "Notify Urgent Response");
 };

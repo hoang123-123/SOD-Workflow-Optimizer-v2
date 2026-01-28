@@ -12,6 +12,9 @@ export interface RuleExecutionParams {
     actualQty?: number;     // Cho hành động Warehouse Report
     requestedQty?: number;  // Cho hành động Warehouse Report
     discrepancyType?: 'INVENTORY' | 'CONVERSION_RATE'; // [NEW] Cho hành động Warehouse Report
+    dept?: string;          // [NEW] Phòng ban thực hiện
+    actor?: string;         // [NEW] Role người thực hiện
+    isFactory?: boolean;    // [NEW] Khách hàng là Nhà máy?
 }
 
 /**
@@ -23,36 +26,38 @@ export interface RuleExecutionParams {
  * @returns Bản sao SOD đã được cập nhật trạng thái
  */
 export const executeBusinessRule = async (
-    ruleId: string, 
-    sod: SOD, 
+    ruleId: string,
+    sod: SOD,
     recordId: string,
     params: RuleExecutionParams
 ): Promise<SOD> => {
-    
+
     // 1. Tìm Rule Definition
     const ruleDef = BUSINESS_RULES.find(r => r.id === ruleId);
     if (!ruleDef) {
         throw new Error(`Rule ID '${ruleId}' not found in configuration.`);
     }
 
-    console.log(`🧠 [RuleEngine] Executing Rule: ${ruleId} (${ruleDef.name})`, { params });
-
     // 2. Clone SOD để không mutate trực tiếp
     let updatedSOD = { ...sod };
+
     const actionType = ruleDef.process.triggerAction;
 
     // 3. Thực thi Logic dựa trên TriggerAction
     switch (actionType) {
         case 'TRIGGER_SALE_SHIPMENT': {
             const qtyToShip = params.quantity || 0;
-            // Gọi Flow trigger
-            await FlowTriggers.notifyWarehouseOnSaleShipment(sod, qtyToShip, recordId);
-            
-            // Cập nhật State
+            const isFactory = params.isFactory || false;
+
+            // [NEW] Gọi Flow trigger với isFactory param
+            await FlowTriggers.notifyWarehouseOnSaleShipment(sod, qtyToShip, recordId, isFactory);
+
+            // [NEW] Cập nhật State - phân biệt action dựa trên Factory
             updatedSOD.saleDecision = {
-                action: 'SHIP_PARTIAL',
+                action: isFactory ? 'SHIP_PARTIAL' : 'SHIP_AND_CLOSE',
                 quantity: qtyToShip,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                isFactory: isFactory
             };
             // Nếu chuyển sang Ship -> Xóa Source Plan cũ (nếu có)
             updatedSOD.sourcePlan = undefined;
@@ -61,19 +66,19 @@ export const executeBusinessRule = async (
 
         case 'TRIGGER_SALE_WAIT': {
             await FlowTriggers.notifySourceOnSaleDecision(sod, recordId);
-            
+
             updatedSOD.saleDecision = {
                 action: 'WAIT_ALL',
                 timestamp: new Date().toISOString()
             };
             // Reset Source Plan để Source nhập lại
-            updatedSOD.sourcePlan = undefined; 
+            updatedSOD.sourcePlan = undefined;
             break;
         }
 
         case 'TRIGGER_SALE_CANCEL': {
             await FlowTriggers.notifySaleCancelDecision(sod, recordId);
-            
+
             updatedSOD.saleDecision = {
                 action: 'CANCEL_ORDER',
                 quantity: params.quantity || 0, // Thường là 0 hoặc phần còn thiếu
@@ -90,7 +95,7 @@ export const executeBusinessRule = async (
                 supplier: params.supplier || '',
                 timestamp: new Date().toISOString()
             };
-            
+
             await FlowTriggers.notifySaleOnSourcePlan(updatedSOD, recordId);
             break;
         }
@@ -99,7 +104,9 @@ export const executeBusinessRule = async (
             updatedSOD.warehouseVerification = {
                 actualQty: params.actualQty || 0,
                 requestedQty: params.requestedQty || 0,
-                discrepancyType: params.discrepancyType, // [NEW]
+                discrepancyType: params.discrepancyType,
+                createdByDept: params.dept,
+                actor: params.actor,
                 timestamp: new Date().toISOString()
             };
             // Set cờ đã báo cáo
@@ -132,6 +139,33 @@ export const executeBusinessRule = async (
             };
 
             await FlowTriggers.notifySaleOnWarehouseConfirmation(updatedSOD, 'REJECTED', params.reason, recordId);
+            break;
+        }
+
+        case 'TRIGGER_SALE_URGENT_REQUEST': {
+            updatedSOD.urgentRequest = {
+                status: 'PENDING',
+                timestamp: new Date().toISOString()
+            };
+            await FlowTriggers.notifyWarehouseOnUrgentRequest(updatedSOD, recordId);
+            break;
+        }
+
+        case 'TRIGGER_WH_ACCEPT_URGENT': {
+            updatedSOD.urgentRequest = {
+                status: 'ACCEPTED',
+                timestamp: new Date().toISOString()
+            };
+            await FlowTriggers.notifySaleOnUrgentResponse(updatedSOD, 'ACCEPTED', recordId);
+            break;
+        }
+
+        case 'TRIGGER_WH_REJECT_URGENT': {
+            updatedSOD.urgentRequest = {
+                status: 'REJECTED',
+                timestamp: new Date().toISOString()
+            };
+            await FlowTriggers.notifySaleOnUrgentResponse(updatedSOD, 'REJECTED', recordId);
             break;
         }
 
