@@ -779,22 +779,6 @@ const App: React.FC = () => {
                             {/* TOOLBAR */}
                             <div className="flex flex-col xl:flex-row gap-6 justify-between items-start xl:items-center mb-10 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
                                 <div className="flex items-center gap-6">
-                                    <div className="flex items-baseline gap-1.5 border-r border-gray-200 pr-6">
-                                        <span className="text-3xl font-black text-gray-900 uppercase tracking-tighter">Items</span>
-                                        <span className="text-indigo-600 font-bold tracking-tighter text-lg">{processedShortageSods.length + processedSufficientSods.length}</span>
-                                    </div>
-
-                                    <div className="flex gap-4">
-                                        <div className="flex flex-col">
-                                            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Giao thiếu (Shortage)</span>
-                                            <span className="text-xl font-black text-red-500 leading-none mt-1">{processedShortageSods.length}</span>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Đã xác nhận (Approved)</span>
-                                            <span className="text-xl font-black text-emerald-500 leading-none mt-1">{processedSufficientSods.length}</span>
-                                        </div>
-                                    </div>
-
                                     {showRestoredBadge && (
                                         <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200 uppercase tracking-widest animate-in fade-in duration-500 shadow-sm">
                                             <RefreshCw className="w-3.5 h-3.5" />
