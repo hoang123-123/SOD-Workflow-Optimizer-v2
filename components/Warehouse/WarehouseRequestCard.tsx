@@ -12,7 +12,8 @@ import {
     AlertTriangle,
     FileText,
     CheckCircle2,
-    Hourglass
+    Hourglass,
+    PackageCheck
 } from 'lucide-react';
 
 interface WarehouseRequestCardProps {
@@ -68,6 +69,20 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
 
         } catch (error) {
             console.error("Warehouse submit error", error);
+        } finally {
+            setIsNotifying(false);
+        }
+    };
+
+    const handleConfirmExport = async () => {
+        setIsNotifying(true);
+        try {
+            const updatedSOD = await executeBusinessRule('WH_CONFIRM', sod, recordId, {});
+            onUpdate(updatedSOD);
+            if (onSaveState) await onSaveState(updatedSOD);
+        } catch (error) {
+            console.error("Warehouse Confirm Error:", error);
+            alert("Lỗi xác nhận xuất kho.");
         } finally {
             setIsNotifying(false);
         }
@@ -147,6 +162,16 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                 </div>
                 <div className="flex items-center gap-3">
                     <StatusBadge sod={sod} />
+                    {!isSubmitted && (
+                        <button
+                            onClick={handleConfirmExport}
+                            disabled={isNotifying}
+                            className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm disabled:bg-gray-200"
+                        >
+                            {isNotifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PackageCheck className="w-3.5 h-3.5" />}
+                            Xác nhận xuất
+                        </button>
+                    )}
                     <button
                         onClick={() => setIsDiscoveryExpanded(!isDiscoveryExpanded)}
                         className={`p-2 rounded-xl transition-all ${isDiscoveryExpanded ? (isSubmitted ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600') : 'bg-gray-100 text-gray-400 rotate-180'}`}

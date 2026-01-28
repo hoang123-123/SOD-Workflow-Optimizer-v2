@@ -205,66 +205,25 @@ export const WarehouseActionZone: React.FC<WarehouseActionZoneProps> = ({ sod, c
                                 </div>
 
                                 <div className="mt-auto">
-                                    {!isRejecting ? (
-                                        <div className="flex flex-col gap-4">
-                                            {sod.warehouseVerification && !sod.saleDecision && (
-                                                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-                                                    <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                                                    <div className="text-xs text-amber-800 font-medium">
-                                                        Vui lòng chờ Sale phản hồi báo cáo sai lệch trước khi thực hiện xuất kho.
-                                                    </div>
+                                    <div className="flex flex-col gap-4">
+                                        {sod.warehouseVerification && !sod.saleDecision && (
+                                            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                                                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                                <div className="text-xs text-amber-800 font-medium">
+                                                    Vui lòng chờ Sale phản hồi báo cáo sai lệch trước khi thực hiện xuất kho.
                                                 </div>
-                                            )}
+                                            </div>
+                                        )}
 
-                                            <div className={`grid ${isDue ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
-                                                {isDue && (
-                                                    <button
-                                                        onClick={() => setIsRejecting(true)}
-                                                        className="h-14 px-6 text-red-600 bg-white border border-red-200 hover:bg-red-50 hover:border-red-300 text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95"
-                                                    >
-                                                        Báo tỷ lệ lệch
-                                                    </button>
-                                                )}
-                                                <button
-                                                    onClick={() => handleWarehouseAction('CONFIRM')}
-                                                    disabled={isSubmitting || (!!sod.warehouseVerification && !sod.saleDecision)}
-                                                    className="h-14 px-6 bg-indigo-500 text-white hover:bg-indigo-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:-translate-y-0.5 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400"
-                                                >
-                                                    {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <PackageCheck className="w-5 h-5" />}
-                                                    {isSubmitting ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN XUẤT KHO'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="animate-in fade-in zoom-in-95 duration-300 bg-red-50 p-5 rounded-xl border border-red-200 shadow-md">
-                                            <label className="block text-[10px] font-bold text-red-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                                <AlertOctagon className="w-4 h-4" />
-                                                LÝ DO TỪ CHỐI / BÁO LỖI <span className="text-red-500 text-base">*</span>
-                                            </label>
-                                            <textarea
-                                                className="w-full text-sm font-bold p-4 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 min-h-[100px] bg-white text-gray-900 placeholder-gray-400 shadow-sm resize-none transition-all mb-4"
-                                                placeholder="Nhập chi tiết lý do..."
-                                                value={rejectReason}
-                                                onChange={(e) => setRejectReason(e.target.value)}
-                                                autoFocus
-                                            />
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <button
-                                                    onClick={() => setIsRejecting(false)}
-                                                    className="h-12 px-4 text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all"
-                                                >
-                                                    Hủy bỏ
-                                                </button>
-                                                <button
-                                                    onClick={() => handleWarehouseAction('REJECT')}
-                                                    disabled={!rejectReason || isSubmitting}
-                                                    className="h-12 px-4 bg-red-600 text-white hover:bg-red-700 text-[10px] font-bold uppercase tracking-widest rounded-lg disabled:bg-gray-200 disabled:text-gray-400 flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
-                                                >
-                                                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "GỬi BÁO CÁO LỖI"}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
+                                        <button
+                                            onClick={() => handleWarehouseAction('CONFIRM')}
+                                            disabled={isSubmitting || (!!sod.warehouseVerification && !sod.saleDecision)}
+                                            className="h-14 w-full bg-indigo-500 text-white hover:bg-indigo-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:-translate-y-0.5 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400"
+                                        >
+                                            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <PackageCheck className="w-5 h-5" />}
+                                            {isSubmitting ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN XUẤT KHO'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}

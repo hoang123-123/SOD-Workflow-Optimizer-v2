@@ -250,12 +250,26 @@ export const SODCard: React.FC<SODCardProps> = ({ sod, currentRole, onUpdate, on
             );
         }
 
-        const shouldShowRequestCard = sod.statusFromPlan === 'Đủ' || !!sod.warehouseVerification;
-        const isSaleAlreadyProcessing = !!sod.saleDecision && !sod.warehouseVerification;
+        const isWaitingForSaleAfterReport = !!sod.warehouseVerification && !sod.saleDecision;
+        const isInitialSufficient = sod.statusFromPlan === 'Đủ' && !sod.saleDecision;
 
+        // Nếu là đơn Đủ ban đầu HOẶC đang chờ Sale phản hồi sau báo cáo -> Chỉ hiện Card Báo cáo/Theo dõi
+        if (isInitialSufficient || isWaitingForSaleAfterReport) {
+            return (
+                <WarehouseRequestCard
+                    sod={sod}
+                    recordId={recordId}
+                    onUpdate={onUpdate}
+                    onSaveState={onSaveState}
+                    currentDepartment={currentDepartment}
+                    currentRole={currentRole}
+                />
+            );
+        }
+
+        // Trường hợp còn lại (Sale đã chốt phương án Giao hàng/Hủy đơn)
         return (
             <div className="space-y-6">
-                {/* 1. Thẻ Hành động: Xuất kho */}
                 <WarehouseActionCard
                     sod={sod}
                     recordId={recordId}
@@ -263,8 +277,7 @@ export const SODCard: React.FC<SODCardProps> = ({ sod, currentRole, onUpdate, on
                     onSaveState={onSaveState}
                 />
 
-                {/* 2. Thẻ Báo cáo: Kiểm đếm sai lệch (Bento UI) */}
-                {shouldShowRequestCard && !isSaleAlreadyProcessing && (
+                {!!sod.warehouseVerification && (
                     <WarehouseRequestCard
                         sod={sod}
                         recordId={recordId}
