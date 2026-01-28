@@ -13,9 +13,10 @@ interface WarehouseActionZoneProps {
     renderBadge: () => React.ReactNode;
     isWorkflowStoppedBySale: boolean;
     isDue: boolean; // [NEW] Kiểm tra đơn đã đến hạn chưa
+    hideHeader?: boolean; // [NEW] Ẩn header khi dùng trong WarehouseActionCard
 }
 
-export const WarehouseActionZone: React.FC<WarehouseActionZoneProps> = ({ sod, canAct, recordId, onAction, renderBadge, isWorkflowStoppedBySale, isDue }) => {
+export const WarehouseActionZone: React.FC<WarehouseActionZoneProps> = ({ sod, canAct, recordId, onAction, renderBadge, isWorkflowStoppedBySale, isDue, hideHeader }) => {
     const isWarehouseUser = true; // Component này chỉ hiện nếu có quyền Kho hoặc Admin
     const [isRejecting, setIsRejecting] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
@@ -73,17 +74,21 @@ export const WarehouseActionZone: React.FC<WarehouseActionZoneProps> = ({ sod, c
 
     return (
         <div className={`relative rounded-xl p-6 border transition-all flex flex-col ${canAct ? 'bg-white border-indigo-200 shadow-lg' : 'bg-gray-50 border-gray-200'}`}>
-            <SectionHeader
-                icon={Warehouse}
-                title="Xử lý Kho (Logistics)"
-                isActive={canAct}
-                rightElement={renderBadge()}
-            />
+            {!hideHeader && (
+                <>
+                    <SectionHeader
+                        icon={Warehouse}
+                        title="Xử lý Kho (Logistics)"
+                        isActive={canAct}
+                        rightElement={renderBadge()}
+                    />
 
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-6 pb-4 border-b border-gray-200">
-                <Warehouse className="w-4 h-4 text-indigo-500" />
-                <span>Kho xuất: <strong className="text-gray-700">{sod.warehouseLocation || 'Kho Dataverse'}</strong></span>
-            </div>
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-6 pb-4 border-b border-gray-200">
+                        <Warehouse className="w-4 h-4 text-indigo-500" />
+                        <span>Kho xuất: <strong className="text-gray-700">{sod.warehouseLocation || 'Kho Dataverse'}</strong></span>
+                    </div>
+                </>
+            )}
 
             {isWorkflowStoppedBySale ? (
                 <div className="py-10 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
@@ -206,18 +211,9 @@ export const WarehouseActionZone: React.FC<WarehouseActionZoneProps> = ({ sod, c
 
                                 <div className="mt-auto">
                                     <div className="flex flex-col gap-4">
-                                        {sod.warehouseVerification && !sod.saleDecision && (
-                                            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-                                                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                                                <div className="text-xs text-amber-800 font-medium">
-                                                    Vui lòng chờ Sale phản hồi báo cáo sai lệch trước khi thực hiện xuất kho.
-                                                </div>
-                                            </div>
-                                        )}
-
                                         <button
                                             onClick={() => handleWarehouseAction('CONFIRM')}
-                                            disabled={isSubmitting || (!!sod.warehouseVerification && !sod.saleDecision)}
+                                            disabled={isSubmitting}
                                             className="h-14 w-full bg-indigo-500 text-white hover:bg-indigo-600 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:-translate-y-0.5 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400"
                                         >
                                             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <PackageCheck className="w-5 h-5" />}

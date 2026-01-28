@@ -5,7 +5,9 @@ import {
     Zap,
     Loader2,
     Check,
-    X
+    X,
+    CheckCircle2,
+    XCircle
 } from 'lucide-react';
 
 interface WarehouseUrgentCardProps {
@@ -29,6 +31,8 @@ export const WarehouseUrgentCard: React.FC<WarehouseUrgentCardProps> = ({
 
     const rs = sod.qtyOrdered - sod.qtyDelivered;
     const isUrgentPending = sod.urgentRequest?.status === 'PENDING';
+    const isUrgentAccepted = sod.urgentRequest?.status === 'ACCEPTED';
+    const isUrgentRejected = sod.urgentRequest?.status === 'REJECTED';
 
     const handleUrgentResponse = async (status: 'ACCEPTED' | 'REJECTED', e: React.MouseEvent) => {
         e.stopPropagation();
@@ -53,23 +57,40 @@ export const WarehouseUrgentCard: React.FC<WarehouseUrgentCardProps> = ({
         }
     };
 
-    if (!isUrgentPending) return null;
+    // Xác định màu sắc dựa trên trạng thái
+    const getBorderColor = () => {
+        if (isUrgentAccepted) return 'border-emerald-100';
+        if (isUrgentRejected) return 'border-rose-100';
+        return 'border-amber-50 hover:border-amber-100';
+    };
+
+    const getIconBgColor = () => {
+        if (isUrgentAccepted) return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+        if (isUrgentRejected) return 'bg-rose-50 text-rose-600 border-rose-100';
+        return 'bg-amber-50 text-amber-600 border-amber-100';
+    };
 
     return (
-        <div className="bg-white border-2 border-amber-50 rounded-[1.5rem] transition-all overflow-hidden shadow-sm hover:shadow-md hover:border-amber-100 mb-6 group">
+        <div className={`bg-white border-2 ${getBorderColor()} rounded-[1.5rem] transition-all overflow-hidden shadow-sm hover:shadow-md mb-6 group`}>
             <div className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 {/* Left: Product Info */}
                 <div className="flex items-center gap-4 flex-1">
-                    <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 shadow-sm shrink-0 flex items-center justify-center">
-                        <Zap className="w-5 h-5 fill-amber-200" />
+                    <div className={`p-3 rounded-2xl ${getIconBgColor()} border shadow-sm shrink-0 flex items-center justify-center`}>
+                        {isUrgentAccepted ? <CheckCircle2 className="w-5 h-5" /> :
+                            isUrgentRejected ? <XCircle className="w-5 h-5" /> :
+                                <Zap className="w-5 h-5 fill-amber-200" />}
                     </div>
                     <div className="min-w-0">
-                        <div className="font-black text-gray-900 text-lg uppercase tracking-tighter leading-tight">Request giao gấp</div>
                         <div className="font-extrabold text-gray-900 text-base leading-tight truncate uppercase tracking-tight">
                             {sod.detailName}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] font-black bg-amber-500 text-white px-2 py-0.5 rounded-lg border border-amber-600 shadow-sm uppercase">Yêu cầu giao gấp</span>
+                            {isUrgentAccepted && (
+                                <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-lg border border-emerald-600 shadow-sm uppercase">Đã chấp nhận</span>
+                            )}
+                            {isUrgentRejected && (
+                                <span className="text-[10px] font-black bg-rose-500 text-white px-2 py-0.5 rounded-lg border border-rose-600 shadow-sm uppercase">Đã từ chối</span>
+                            )}
                             <span className="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded-lg border border-gray-200 uppercase">{sod.product.sku}</span>
                         </div>
                     </div>
@@ -87,26 +108,28 @@ export const WarehouseUrgentCard: React.FC<WarehouseUrgentCardProps> = ({
                         </div>
                     </div>
 
-                    {/* Action Buttons (Matching Ảnh 3) */}
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={(e) => handleUrgentResponse('ACCEPTED', e)}
-                            disabled={isSubmitting}
-                            className="h-11 px-5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-200 transition-all active:scale-95 flex items-center gap-2 disabled:bg-gray-300"
-                        >
-                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" strokeWidth={3} />}
-                            Chấp nhận
-                        </button>
+                    {/* Action Buttons - Chỉ hiển thị khi PENDING */}
+                    {isUrgentPending && (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={(e) => handleUrgentResponse('ACCEPTED', e)}
+                                disabled={isSubmitting}
+                                className="h-11 w-11 flex items-center justify-center bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl shadow-lg shadow-emerald-200 transition-all active:scale-95 disabled:bg-gray-300"
+                                title="Chấp nhận"
+                            >
+                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-5 h-5" strokeWidth={4} />}
+                            </button>
 
-                        <button
-                            onClick={(e) => handleUrgentResponse('REJECTED', e)}
-                            disabled={isSubmitting}
-                            className="h-11 w-11 flex items-center justify-center border-2 border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded-xl transition-all active:scale-95 disabled:bg-gray-50 disabled:text-gray-300"
-                            title="Từ chối"
-                        >
-                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-5 h-5" strokeWidth={3} />}
-                        </button>
-                    </div>
+                            <button
+                                onClick={(e) => handleUrgentResponse('REJECTED', e)}
+                                disabled={isSubmitting}
+                                className="h-11 w-11 flex items-center justify-center border-2 border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded-xl transition-all active:scale-95 disabled:bg-gray-50 disabled:text-gray-300"
+                                title="Từ chối"
+                            >
+                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-5 h-5" strokeWidth={3} />}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

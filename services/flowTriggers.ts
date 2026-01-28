@@ -66,6 +66,14 @@ export const notifySaleCancelDecision = async (sod: any, recordId: string): Prom
 }
 
 /**
+ * [CASE A4 & B4] Sale từ chối báo cáo sai lệch của Kho
+ */
+export const notifyWarehouseOnSaleRejectReport = async (sod: any, recordId: string): Promise<boolean> => {
+    const payload = Templates.buildSaleRejectReportPayload(sod, recordId);
+    return await sendToFlow(payload, "Notify Reject Report");
+};
+
+/**
  * [MỚI] Thông báo ngược lại cho Sale khi Source đã xác nhận kế hoạch (ETA)
  */
 export const notifySaleOnSourcePlan = async (sod: any, recordId: string): Promise<boolean> => {

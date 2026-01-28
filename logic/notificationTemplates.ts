@@ -296,3 +296,30 @@ export const buildPickingDeptPayload = (sod: SOD, recordId: string): Notificatio
         Timestamp: new Date().toISOString()
     };
 };
+
+/**
+ * [NEW] TEMPLATE 8: SALE -> WAREHOUSE (Từ chối báo cáo sai lệch)
+ */
+export const buildSaleRejectReportPayload = (sod: SOD, recordId: string): NotificationPayload => {
+    const { k, N, unit } = getIndices(sod);
+    const reportQty = sod.warehouseVerification?.actualQty || 0;
+
+    const message = `[TỪ CHỐI SAI LỆCH] Sale từ chối báo cáo ${reportQty} ${unit}. Yêu cầu Kho kiểm tra lại thực tồn và giao theo nhu cầu ${N} ${unit}.`;
+
+    return {
+        Type: "SALE_TO_WAREHOUSE_REJECT_REPORT",
+        SodId: sod.id,
+        RecordId: recordId,
+        SodName: sod.detailName,
+        Sku: sod.product.sku,
+        Message: message,
+        Details: {
+            NhuCauGoc: N,
+            KhoBao: reportQty,
+            LanGiao: k,
+            Actor: "SALE",
+            ActionCode: k === 1 ? "C1_REJECT_REPORT" : "C2_REJECT_REPORT"
+        },
+        Timestamp: new Date().toISOString()
+    };
+};

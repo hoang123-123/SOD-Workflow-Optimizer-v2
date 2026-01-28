@@ -87,6 +87,16 @@ export const executeBusinessRule = async (
             break;
         }
 
+        case 'TRIGGER_SALE_REJECT_REPORT': {
+            await FlowTriggers.notifyWarehouseOnSaleRejectReport(sod, recordId);
+
+            updatedSOD.saleDecision = {
+                action: 'REJECT_REPORT',
+                timestamp: new Date().toISOString()
+            };
+            break;
+        }
+
         case 'TRIGGER_SOURCE_CONFIRM': {
             // Cập nhật thông tin trước khi gửi notify
             updatedSOD.sourcePlan = {
@@ -104,6 +114,7 @@ export const executeBusinessRule = async (
             updatedSOD.warehouseVerification = {
                 actualQty: params.actualQty || 0,
                 requestedQty: params.requestedQty || 0,
+                requestedNeed: sod.qtyOrdered - sod.qtyDelivered, // [NEW] Lưu nhu cầu ban đầu
                 discrepancyType: params.discrepancyType,
                 createdByDept: params.dept,
                 actor: params.actor,

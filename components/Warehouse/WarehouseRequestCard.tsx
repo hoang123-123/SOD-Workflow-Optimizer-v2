@@ -13,7 +13,8 @@ import {
     FileText,
     CheckCircle2,
     Hourglass,
-    PackageCheck
+    XCircle,
+    AlertCircle
 } from 'lucide-react';
 
 interface WarehouseRequestCardProps {
@@ -37,7 +38,7 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
     currentDepartment,
     currentRole
 }) => {
-    const [isDiscoveryExpanded, setIsDiscoveryExpanded] = useState<boolean>(true);
+    const [isDiscoveryExpanded, setIsDiscoveryExpanded] = useState<boolean>(false); // [FIX] Mặc định đóng
     const [isNotifying, setIsNotifying] = useState(false);
 
     // --- STATE CHO WAREHOUSE DISCOVERY (KIỂM ĐẾM) ---
@@ -74,41 +75,40 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
         }
     };
 
-    const handleConfirmExport = async () => {
-        setIsNotifying(true);
-        try {
-            const updatedSOD = await executeBusinessRule('WH_CONFIRM', sod, recordId, {});
-            onUpdate(updatedSOD);
-            if (onSaveState) await onSaveState(updatedSOD);
-        } catch (error) {
-            console.error("Warehouse Confirm Error:", error);
-            alert("Lỗi xác nhận xuất kho.");
-        } finally {
-            setIsNotifying(false);
-        }
-    };
-
     const isSubmitted = !!sod.warehouseVerification;
     const isSaleResponded = !!sod.saleDecision && isSubmitted;
 
     const renderSubmittedView = () => {
         if (!sod.warehouseVerification) return null;
         const v = sod.warehouseVerification;
+        const isRejection = sod.saleDecision?.action === 'REJECT_REPORT';
 
         return (
             <div className="bg-white border-2 border-indigo-100 rounded-[1.5rem] p-8 shadow-sm">
                 <div className="flex items-start gap-6 mb-8">
-                    <div className={`p-4 rounded-2xl shadow-sm shrink-0 border-2 ${isSaleResponded ? 'bg-emerald-50 border-emerald-100 text-emerald-500' : 'bg-indigo-50 border-indigo-100 text-indigo-500'}`}>
-                        {isSaleResponded ? <CheckCircle2 className="w-6 h-6" /> : <Hourglass className="w-6 h-6" />}
+                    <div className={`p-4 rounded-2xl shadow-sm shrink-0 border-2 ${isRejection
+                            ? 'bg-rose-50 border-rose-100 text-rose-500'
+                            : isSaleResponded
+                                ? 'bg-emerald-50 border-emerald-100 text-emerald-500'
+                                : 'bg-indigo-50 border-indigo-100 text-indigo-500'
+                        }`}>
+                        {isRejection ? <XCircle className="w-6 h-6" /> : isSaleResponded ? <CheckCircle2 className="w-6 h-6" /> : <Hourglass className="w-6 h-6" />}
                     </div>
                     <div className="flex-1">
-                        <h4 className={`text-xl font-black mb-1 uppercase tracking-tighter ${isSaleResponded ? 'text-emerald-800' : 'text-indigo-800'}`}>
-                            {isSaleResponded ? 'Sale đã xử lý báo cáo' : 'Đang chờ Sale phản hồi'}
+                        <h4 className={`text-xl font-black mb-1 uppercase tracking-tighter ${isRejection
+                                ? 'text-rose-800'
+                                : isSaleResponded
+                                    ? 'text-emerald-800'
+                                    : 'text-indigo-800'
+                            }`}>
+                            {isRejection ? 'Sale yêu cầu kiểm đếm lại' : isSaleResponded ? 'Sale đã xử lý báo cáo' : 'Đang chờ Sale phản hồi'}
                         </h4>
                         <p className="text-sm text-gray-500 font-medium leading-relaxed">
-                            {isSaleResponded
-                                ? 'Bộ phận Sale đã ghi nhận sai lệch và đưa ra phương án xử lý mới.'
-                                : 'Yêu cầu của bạn đã được gửi tới Sale. Vui lòng chờ phản hồi để tiếp tục quy trình.'}
+                            {isRejection
+                                ? 'Sale không đồng ý với báo cáo sai lệch và yêu cầu bạn kiểm tra lại kho thực tế.'
+                                : isSaleResponded
+                                    ? 'Bộ phận Sale đã ghi nhận sai lệch và đưa ra phương án xử lý mới.'
+                                    : 'Yêu cầu của bạn đã được gửi tới Sale. Vui lòng chờ phản hồi để tiếp tục quy trình.'}
                         </p>
                     </div>
                 </div>
@@ -131,10 +131,14 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                 </div>
 
                 {isSaleResponded && (
-                    <div className="p-5 bg-emerald-50 border-2 border-emerald-100 rounded-2xl">
-                        <div className="flex items-center gap-3 text-emerald-700 font-black text-xs uppercase tracking-tight">
-                            <CheckCircle2 className="w-4 h-4" />
-                            Phương án của Sale: {sod.saleDecision?.action === 'CANCEL_ORDER' ? 'Hủy đơn' : 'Giao hàng đợt này'}
+                    <div className={`p-5 rounded-2xl border-2 ${isRejection ? 'bg-rose-50 border-rose-100' : 'bg-emerald-50 border-emerald-100'}`}>
+                        <div className={`flex items-center gap-3 font-black text-xs uppercase tracking-tight ${isRejection ? 'text-rose-700' : 'text-emerald-700'}`}>
+                            {isRejection ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                            Phương án của Sale: {
+                                sod.saleDecision?.action === 'CANCEL_ORDER' ? 'Hủy đơn' :
+                                    sod.saleDecision?.action === 'REJECT_REPORT' ? 'Kiểm tra lại thực tồn' :
+                                        'Giao hàng đợt này'
+                            }
                         </div>
                     </div>
                 )}
@@ -144,40 +148,32 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
 
     return (
         <div className={`bg-white border-2 rounded-[2rem] transition-all overflow-hidden shadow-sm hover:shadow-md mb-6 ${isSubmitted ? 'border-indigo-100' : 'border-amber-100 dark:border-amber-900/30'}`}>
-            {/* Header: Basic Info */}
-            <div className={`px-8 py-6 flex items-center justify-between border-b ${isSubmitted ? 'border-indigo-50 bg-indigo-50/10' : 'border-amber-50 bg-amber-50/10'}`}>
+            {/* Header: Basic Info - Click vào đây để mở/đóng */}
+            <div
+                onClick={() => setIsDiscoveryExpanded(!isDiscoveryExpanded)}
+                className={`px-8 py-6 flex items-center justify-between border-b cursor-pointer ${isSubmitted ? 'border-indigo-50 bg-indigo-50/10' : 'border-amber-50 bg-amber-50/10'}`}
+            >
                 <div className="flex items-start gap-4 flex-1">
                     <div className={`p-3 rounded-2xl border shadow-sm shrink-0 ${isSubmitted ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
                         <Scale className="w-6 h-6" />
                     </div>
                     <div>
-                        <div className="font-black text-gray-900 text-lg uppercase tracking-tighter leading-tight">{sod.detailName}</div>
+                        <div className="font-extrabold text-gray-600 text-sm leading-tight truncate uppercase tracking-tight">{sod.detailName}</div>
                         <div className="flex items-center gap-2 mt-1">
                             <span className="text-[10px] font-black bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-lg border border-indigo-200/50">{sod.product.sku}</span>
-                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-tight ${isSubmitted ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-amber-100 text-amber-700 border-amber-200/50'}`}>
-                                {isSubmitted ? 'Đã gửi Request lệch' : 'Request lệch kho'}
-                            </span>
+                            {isSubmitted && (
+                                <span className="text-[10px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-tight bg-indigo-600 text-white border-indigo-700">
+                                    Đã gửi báo cáo
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
                     <StatusBadge sod={sod} />
-                    {!isSubmitted && (
-                        <button
-                            onClick={handleConfirmExport}
-                            disabled={isNotifying}
-                            className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm disabled:bg-gray-200"
-                        >
-                            {isNotifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PackageCheck className="w-3.5 h-3.5" />}
-                            Xác nhận xuất
-                        </button>
-                    )}
-                    <button
-                        onClick={() => setIsDiscoveryExpanded(!isDiscoveryExpanded)}
-                        className={`p-2 rounded-xl transition-all ${isDiscoveryExpanded ? (isSubmitted ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600') : 'bg-gray-100 text-gray-400 rotate-180'}`}
-                    >
+                    <div className={`p-2 rounded-xl transition-all ${isDiscoveryExpanded ? (isSubmitted ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600') : 'bg-gray-100 text-gray-400 rotate-180'}`}>
                         <ChevronDown className="w-5 h-5" />
-                    </button>
+                    </div>
                 </div>
             </div>
 

@@ -8,6 +8,7 @@ import { WarehouseActionZone } from './WarehouseActionZone';
 import { executeBusinessRule } from '../logic/ruleEngine'; // Import Brain
 import { SaleShortageCard } from './Sale/SaleShortageCard';
 import { SaleUrgentCard } from './Sale/SaleUrgentCard';
+import { SaleDiscrepancyCard } from './Sale/SaleDiscrepancyCard'; // [NEW] Request sai lệch từ Kho
 import { WarehouseRequestCard } from './Warehouse/WarehouseRequestCard';
 import { WarehouseActionCard } from './Warehouse/WarehouseActionCard';
 import { WarehouseUrgentCard } from './Warehouse/WarehouseUrgentCard'; // [NEW]
@@ -50,9 +51,10 @@ interface SODCardProps {
     recordId: string;
     customerIndustryType?: number; // [NEW] Ngành nghề khách hàng: 191920000 = Nhà máy
     currentDepartment?: string; // [NEW] Phòng ban hiện tại
+    isRequestCreator?: boolean; // [NEW] True = bộ phận này TẠO request (history null), False = XỬ LÝ request
 }
 
-export const SODCard: React.FC<SODCardProps> = ({ sod, currentRole, onUpdate, onNotifySale, onSaveState, saleId, recordId, customerIndustryType, currentDepartment }) => {
+export const SODCard: React.FC<SODCardProps> = ({ sod, currentRole, onUpdate, onNotifySale, onSaveState, saleId, recordId, customerIndustryType, currentDepartment, isRequestCreator }) => {
     const [isUrgentSubmitting, setIsUrgentSubmitting] = useState<boolean>(false);
     const [isWarehouseSubmitting, setIsWarehouseSubmitting] = useState<boolean>(false); // [NEW] For Accept/Reject on Header
     const cardRef = useRef<HTMLDivElement>(null);
@@ -225,6 +227,25 @@ export const SODCard: React.FC<SODCardProps> = ({ sod, currentRole, onUpdate, on
                 />
             );
         }
+
+        // [NEW] Kho đã báo sai lệch → CHỈ hiện card "Request từ Kho", KHÔNG hiện SaleShortageCard
+        // Vì: "Request sai lệch" ≠ "Thiếu hàng" (đây là 2 loại request khác nhau)
+        const hasWarehouseDiscrepancy = !!sod.warehouseVerification;
+
+        if (hasWarehouseDiscrepancy) {
+            // [FIX] Kho tạo request sai lệch → Sale CHỈ thấy card này để xử lý
+            return (
+                <SaleDiscrepancyCard
+                    sod={sod}
+                    recordId={recordId}
+                    onUpdate={onUpdate}
+                    onSaveState={onSaveState}
+                    customerIndustryType={customerIndustryType}
+                />
+            );
+        }
+
+        // Đơn thiếu hàng thông thường (hệ thống báo thiếu từ đầu)
         return (
             <SaleShortageCard
                 sod={sod}
@@ -238,7 +259,8 @@ export const SODCard: React.FC<SODCardProps> = ({ sod, currentRole, onUpdate, on
 
     // [NEW] RENDER CHO WAREHOUSE ROLE
     if (isWarehouseUser && !isAdmin) {
-        if (isUrgentPending) {
+        // Card Đơn gấp: Hiển thị khi có urgentRequest (cả PENDING lẫn đã xử lý)
+        if (hasUrgentRequest) {
             // [NEW] Card gấp chuyên biệt (Ảnh 3)
             return (
                 <WarehouseUrgentCard
@@ -250,34 +272,42 @@ export const SODCard: React.FC<SODCardProps> = ({ sod, currentRole, onUpdate, on
             );
         }
 
-        const isWaitingForSaleAfterReport = !!sod.warehouseVerification && !sod.saleDecision;
-        const isInitialSufficient = sod.statusFromPlan === 'Đủ' && !sod.saleDecision;
+        // [FIX] Logic mới: Xét theo nguồn tạo request
+        // - Kho + history null (isRequestCreator) = Kho TẠO request sai lệch -> hiện card "Báo cáo sai lệch"
+        // - Kho + history có data = Kho XỬ LÝ request từ Sale -> hiện card "Yêu cầu xuất kho"
 
-        // Nếu là đơn Đủ ban đầu HOẶC đang chờ Sale phản hồi sau báo cáo -> Chỉ hiện Card Báo cáo/Theo dõi
-        if (isInitialSufficient || isWaitingForSaleAfterReport) {
-            return (
-                <WarehouseRequestCard
-                    sod={sod}
-                    recordId={recordId}
-                    onUpdate={onUpdate}
-                    onSaveState={onSaveState}
-                    currentDepartment={currentDepartment}
-                    currentRole={currentRole}
-                />
-            );
-        }
+        const hasDiscrepancyReport = !!sod.warehouseVerification;
+        console.log('[DEBUG] SOD warehouseVerification:', sod.id, sod.warehouseVerification, 'hasDiscrepancyReport:', hasDiscrepancyReport, 'isRequestCreator:', isRequestCreator);
+        const hasSaleShipDecision = sod.saleDecision?.action === 'SHIP_PARTIAL' || sod.saleDecision?.action === 'SHIP_AND_CLOSE';
 
-        // Trường hợp còn lại (Sale đã chốt phương án Giao hàng/Hủy đơn)
+        // Kho vào app + history null = Kho đang TẠO request sai lệch -> hiện card "Báo cáo sai lệch"
+        // Kho vào app + history có data = Kho đang XỬ LÝ request từ Sale -> hiện card "Yêu cầu xuất kho"
+        const isWarehouseCreatingRequest = isRequestCreator && isWarehouseUser;
+
+        // Card Xuất kho: Hiện khi Kho XỬ LÝ request (history có data) và chưa có báo cáo sai lệch
+        const shouldShowExportCard = !isWarehouseCreatingRequest && !hasDiscrepancyReport && (
+            (sod.statusFromPlan === 'Đủ' && isDateDue()) ||
+            hasSaleShipDecision ||
+            !!sod.warehouseConfirmation
+        );
+
+        // Card Báo cáo sai lệch: Hiện khi Kho TẠO request (history null) HOẶC đã có warehouseVerification
+        const shouldShowRequestCard = isWarehouseCreatingRequest || hasDiscrepancyReport;
+
         return (
             <div className="space-y-6">
-                <WarehouseActionCard
-                    sod={sod}
-                    recordId={recordId}
-                    onUpdate={onUpdate}
-                    onSaveState={onSaveState}
-                />
+                {/* Card Yêu cầu xuất kho - Hiện khi đơn đủ hàng và KHÔNG có báo cáo sai lệch */}
+                {shouldShowExportCard && (
+                    <WarehouseActionCard
+                        sod={sod}
+                        recordId={recordId}
+                        onUpdate={onUpdate}
+                        onSaveState={onSaveState}
+                    />
+                )}
 
-                {!!sod.warehouseVerification && (
+                {/* Card Báo cáo sai lệch - Hiện độc lập khi có warehouseVerification */}
+                {shouldShowRequestCard && (
                     <WarehouseRequestCard
                         sod={sod}
                         recordId={recordId}

@@ -21,7 +21,7 @@ export interface Product {
 }
 
 export interface SaleDecision {
-  action: 'SHIP_PARTIAL' | 'SHIP_AND_CLOSE' | 'WAIT_ALL' | 'CANCEL_ORDER'; // [UPDATED] Thêm SHIP_AND_CLOSE cho Non-Factory
+  action: 'SHIP_PARTIAL' | 'SHIP_AND_CLOSE' | 'WAIT_ALL' | 'CANCEL_ORDER' | 'REJECT_REPORT'; // [UPDATED] Thêm REJECT_REPORT
   timestamp: string;
   quantity?: number; // Quantity decided for shipment
   isFactory?: boolean; // [NEW] Flag xác định loại khách hàng
@@ -50,6 +50,7 @@ export interface UrgentRequest {
 export interface WarehouseVerification {
   actualQty: number; // Số lượng thực tế kho nhập
   requestedQty: number; // Số lượng đơn kho xác nhận
+  requestedNeed?: number; // [NEW] Nhu cầu ban đầu lúc Kho submit (qtyOrdered - qtyDelivered)
   timestamp: string;
   discrepancyType?: 'INVENTORY' | 'CONVERSION_RATE'; // [NEW] Loại sai lệch
   createdByDept?: string; // [NEW] Phòng ban tạo request (VD: Kho Miền Trung)
@@ -127,7 +128,8 @@ export interface NotificationPayload {
   | "WAREHOUSE_SUBMIT"
   | "SALE_URGENT_TO_WH"
   | "WH_URGENT_ACCEPTED"
-  | "WH_URGENT_REJECTED";
+  | "WH_URGENT_REJECTED"
+  | "SALE_TO_WAREHOUSE_REJECT_REPORT";
 
   "SodId": string;
   "RecordId": string;

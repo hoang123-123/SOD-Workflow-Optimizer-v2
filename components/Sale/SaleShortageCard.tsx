@@ -112,7 +112,7 @@ export const SaleShortageCard: React.FC<SaleShortageCardProps> = ({ sod, recordI
                     <div className="pt-2 border-t border-dashed border-gray-200" onClick={(e) => e.stopPropagation()}>
                         <SaleActionZone
                             sod={sod}
-                            canAct={true}
+                            canAct={!sod.saleDecision}
                             recordId={recordId}
                             onAction={handleActionComplete}
                             isDue={true}

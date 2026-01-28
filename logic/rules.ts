@@ -12,7 +12,8 @@ export type TriggerActionType =
     | 'TRIGGER_WH_REJECT'          // Kho từ chối
     | 'TRIGGER_SALE_URGENT_REQUEST' // Sale yêu cầu đơn gấp
     | 'TRIGGER_WH_ACCEPT_URGENT'    // Kho chấp nhận đơn gấp
-    | 'TRIGGER_WH_REJECT_URGENT';   // Kho từ chối đơn gấp
+    | 'TRIGGER_WH_REJECT_URGENT'    // Kho từ chối đơn gấp
+    | 'TRIGGER_SALE_REJECT_REPORT'; // [NEW] Sale từ chối báo cáo sai lệch (không hủy đơn)
 
 export interface BusinessRule {
     id: string;
@@ -117,6 +118,30 @@ export const BUSINESS_RULES: BusinessRule[] = [
             nextAction: 'Kết thúc.'
         }
     },
+    // --- CASE A4: TỪ CHỐI BÁO CÁO SAI LỆCH (KHÔNG HỦY ĐƠN) ---
+    {
+        id: 'A4',
+        group: 'CASE A (Lần đầu K=1)',
+        name: 'Từ chối báo cáo sai lệch',
+        description: 'Sale không đồng ý với số liệu Kho báo. Tag: DT_X1_D1',
+        actor: UserRole.SALE,
+        input: {
+            actionName: 'Từ chối báo cáo',
+            condition: 'Có warehouseVerification'
+        },
+        process: {
+            triggerAction: 'TRIGGER_SALE_REJECT_REPORT',
+            apiTrigger: 'notifySaleRejectReport',
+            notificationTag: 'SALE_TO_WAREHOUSE_REJECT_REPORT',
+            nextStatus: 'KEEP_CURRENT',
+            logicDesc: 'Từ chối đề xuất của Kho, yêu cầu kiểm tra lại. Tag: DT_X1_D1'
+        },
+        output: {
+            targetRole: UserRole.WAREHOUSE,
+            uiDescription: 'Kho nhận thông báo từ chối báo cáo.',
+            nextAction: 'Kho kiểm tra lại tồn kho.'
+        }
+    },
 
     // --- CASE B1: GIAO TIẾP & CHỐT (Giao lần 2 - K>1) ---
     {
@@ -188,6 +213,30 @@ export const BUSINESS_RULES: BusinessRule[] = [
             targetRole: UserRole.VIEWER,
             uiDescription: 'Trạng thái Đã Hủy.',
             nextAction: 'Kết thúc.'
+        }
+    },
+    // --- CASE B4: TỪ CHỐI BÁO CÁO SAI LỆCH LẦN K>1 ---
+    {
+        id: 'B4',
+        group: 'CASE B (Lần sau K>1)',
+        name: 'Từ chối báo cáo sai lệch',
+        description: 'Sale không đồng ý với số liệu Kho báo. Tag: DT_X1_D2',
+        actor: UserRole.SALE,
+        input: {
+            actionName: 'Từ chối báo cáo',
+            condition: 'DeliveryCount > 0 & Có warehouseVerification'
+        },
+        process: {
+            triggerAction: 'TRIGGER_SALE_REJECT_REPORT',
+            apiTrigger: 'notifySaleRejectReport',
+            notificationTag: 'SALE_TO_WAREHOUSE_REJECT_REPORT',
+            nextStatus: 'KEEP_CURRENT',
+            logicDesc: 'Từ chối đề xuất của Kho, yêu cầu kiểm tra lại. Tag: DT_X1_D2'
+        },
+        output: {
+            targetRole: UserRole.WAREHOUSE,
+            uiDescription: 'Kho nhận thông báo từ chối báo cáo.',
+            nextAction: 'Kho kiểm tra lại tồn kho.'
         }
     },
 

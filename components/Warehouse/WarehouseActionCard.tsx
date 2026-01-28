@@ -56,7 +56,8 @@ export const WarehouseActionCard: React.FC<WarehouseActionCardProps> = ({
                         <PackageCheck className="w-6 h-6" />
                     </div>
                     <div>
-                        <div className="font-black text-gray-900 text-lg leading-tight mb-1 uppercase tracking-tighter">{sod.detailName}</div>
+                        <div className="font-black text-gray-900 text-lg leading-tight mb-1 uppercase tracking-tighter">Yêu cầu xuất kho</div>
+                        <div className="font-extrabold text-gray-600 text-sm leading-tight truncate uppercase tracking-tight mb-1">{sod.detailName}</div>
                         <div className="flex items-center gap-3 text-xs text-gray-500">
                             <span className="font-bold bg-gray-100 px-2 py-0.5 rounded-lg text-gray-700 border border-gray-200">{sod.product.sku}</span>
                         </div>
@@ -87,24 +88,17 @@ export const WarehouseActionCard: React.FC<WarehouseActionCardProps> = ({
 
             {/* Content: Actions Zone */}
             {isWorkflowExpanded && (
-                <div className="p-8 animate-in slide-in-from-top-4 duration-500">
-                    <div className="bg-emerald-50/30 rounded-3xl border-2 border-emerald-100 p-8">
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="p-3 bg-white rounded-xl shadow-sm text-emerald-600 border border-emerald-100">
-                                <ClipboardList className="w-6 h-6" />
-                            </div>
-                            <h4 className="text-lg font-black text-gray-900 uppercase tracking-tighter">Request xuất kho</h4>
-                        </div>
-                        <WarehouseActionZone
-                            sod={sod}
-                            canAct={!sod.warehouseConfirmation}
-                            recordId={recordId}
-                            onAction={handleActionComplete}
-                            renderBadge={renderWarehouseBadge}
-                            isWorkflowStoppedBySale={sod.saleDecision?.action === 'CANCEL_ORDER'}
-                            isDue={true}
-                        />
-                    </div>
+                <div className="p-6">
+                    <WarehouseActionZone
+                        sod={sod}
+                        canAct={!sod.warehouseConfirmation}
+                        recordId={recordId}
+                        onAction={handleActionComplete}
+                        renderBadge={renderWarehouseBadge}
+                        isWorkflowStoppedBySale={sod.saleDecision?.action === 'CANCEL_ORDER'}
+                        isDue={true}
+                        hideHeader={true}
+                    />
                 </div>
             )}
         </div>

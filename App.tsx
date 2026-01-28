@@ -29,6 +29,9 @@ const TEST_CUSTOMER_IDS = [
     "066b26aa-b9a3-ee11-be37-000d3aa3fd6f"
 ];
 
+// [DEV] Record ID phiếu demo để test
+const DEV_RECORD_ID = "da5fb5b6-b1f5-f011-8406-000d3aa213fd";
+
 const getRoleFromDepartment = (department: string | null): UserRole => {
     if (!department) return UserRole.ADMIN;
     const normalizedDept = department.trim().toUpperCase();
@@ -73,6 +76,7 @@ const App: React.FC = () => {
     const [orders, setOrders] = useState<SalesOrder[]>([]);
     const [sods, setSods] = useState<SOD[]>([]);
     const [historyData, setHistoryData] = useState<any>(null); // Store parsed history
+    const [isRequestCreator, setIsRequestCreator] = useState<boolean>(true); // [NEW] True = bộ phận này TẠO request, False = XỬ LÝ request
 
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [selectedOrder, setSelectedOrder] = useState<string>('');
@@ -141,8 +145,8 @@ const App: React.FC = () => {
 
                 // --- TEST FALLBACK: Record ID if missing ---
                 if (!recordId || recordId === 'undefined' || recordId === 'null') {
-                    console.info("Dev Mode: Using Test Record ID (DEV_TEST_RECORD_ID)");
-                    recordId = "DEV_TEST_RECORD_ID";
+                    console.info("Dev Mode: Using Test Record ID", DEV_RECORD_ID);
+                    recordId = DEV_RECORD_ID;
                 }
 
                 // --- HISTORY RETRIEVAL STRATEGY ---
@@ -191,6 +195,7 @@ const App: React.FC = () => {
 
                 if (effectiveHistory) {
                     setHistoryData(effectiveHistory);
+                    setIsRequestCreator(false); // [FIX] Có history = đang XỬ LÝ request từ nguồn khác
                     if (sourceOfTruth !== 'NONE') {
                         // Trigger Badge instead of Toast
                         setShowRestoredBadge(true);
@@ -454,7 +459,7 @@ const App: React.FC = () => {
         setIsRoleMenuOpen(false);
     };
 
-    const { processedShortageSods, processedSufficientSods } = useMemo(() => {
+    const { processedDiscrepancySods, processedShortageSods, processedSufficientSods } = useMemo(() => {
         const baseFiltered = sods.filter(sod => {
             const term = searchTerm.toLowerCase();
             const matchesSearch =
@@ -467,8 +472,9 @@ const App: React.FC = () => {
             return matchesSearch && matchesStatus;
         });
 
-        const shortage = [];
-        const sufficient = [];
+        const discrepancy: typeof sods = [];  // [NEW] List riêng cho Request từ Kho
+        const shortage: typeof sods = [];     // List cho đơn thiếu hàng thường
+        const sufficient: typeof sods = [];   // List cho đơn gấp/đủ hàng
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -487,27 +493,63 @@ const App: React.FC = () => {
             const isUrgentPending = sod.urgentRequest?.status === 'PENDING';
 
             if (currentRole === UserRole.SALE) {
-                // [FIX] Logic Sale: List Thiếu = status SHORTAGE hoặc statusFromPlan chứa 'Thiếu'
                 const isShortageStatus = sod.status === SODStatus.SHORTAGE_PENDING_SALE;
                 const isShortageFromPlan = sod.statusFromPlan?.toLowerCase().includes('thiếu') || sod.statusFromPlan?.toLowerCase().includes('thieu');
+                const hasWarehouseDiscrepancy = !!sod.warehouseVerification;
+                const hasSaleDecision = !!sod.saleDecision;
+                const hasUrgentRequest = !!sod.urgentRequest;
+                const isUrgentPending = sod.urgentRequest?.status === 'PENDING';
 
-                if (isShortageStatus || isShortageFromPlan) {
-                    shortage.push(sod);
-                }
-                // [NEW] Logic Sale: List Gấp = Tương lai + Đủ tồn lý thuyết HOẶC Đang chờ xử lý gấp
-                else if ((isFuture && isUrgentPotential) || isUrgentPending) {
-                    sufficient.push(sod);
+                if (!isRequestCreator) {
+                    // [MODE: XỬ LÝ/XEM LẠI HISTORY]
+                    // Hiển thị nếu có bất kỳ tác động nào trong history: Sai lệch kho OR Quyết định của Sale OR Yêu cầu gấp
+                    if (hasWarehouseDiscrepancy) {
+                        discrepancy.push(sod);
+                    } else if (hasSaleDecision || hasUrgentRequest) {
+                        // Quyết định chốt hàng của Sale hoặc Yêu cầu gấp -> cho vào list tương ứng để hiển thị
+                        if (isUrgentPending || hasUrgentRequest) {
+                            sufficient.push(sod);
+                        } else {
+                            shortage.push(sod);
+                        }
+                    }
+                } else {
+                    // [MODE: TẠO REQUEST] - Load data tự động từ hệ thống
+                    if (hasWarehouseDiscrepancy) {
+                        discrepancy.push(sod);
+                    } else if (isShortageStatus || isShortageFromPlan) {
+                        shortage.push(sod);
+                    } else if ((isFuture && isUrgentPotential) || isUrgentPending) {
+                        sufficient.push(sod);
+                    }
                 }
             } else if (currentRole === UserRole.WAREHOUSE) {
                 const isPlanSufficient = sod.statusFromPlan === 'Đủ';
-                const isSaleShipConfirmed = sod.saleDecision?.action === 'SHIP_PARTIAL' || sod.saleDecision?.action === 'SHIP_AND_CLOSE';
+                const hasAnyUrgentRequest = !!sod.urgentRequest;
+                const hasSaleDecision = !!sod.saleDecision;
+                const hasWarehouseDiscrepancy = !!sod.warehouseVerification;
 
-                if (isUrgentPending) {
-                    // [NEW] Đơn gấp cho vào list 1 (shortage)
-                    shortage.push(sod);
-                } else if (isDue && (isPlanSufficient || isSaleShipConfirmed)) {
-                    // [NEW] Đơn đủ hoặc Sale đã chốt cho vào list 2 (sufficient)
-                    sufficient.push(sod);
+                if (!isRequestCreator) {
+                    // [MODE: XỬ LÝ] - Kho xử lý các yêu cầu hoặc xem lại báo cáo
+                    if (hasWarehouseDiscrepancy) {
+                        // ƯU TIÊN 1: Nếu có sai lệch -> Đưa vào discrepancy
+                        discrepancy.push(sod);
+                    } else if (hasAnyUrgentRequest || hasSaleDecision) {
+                        // ƯU TIÊN 2: Nếu không có sai lệch nhưng là Yêu cầu gấp hoặc lệnh xuất hàng -> Đưa vào shortage
+                        shortage.push(sod);
+                    }
+                } else {
+                    // [MODE: TẠO MỚI] - Kho khởi tạo yêu cầu
+                    if (hasWarehouseDiscrepancy) {
+                        // ƯU TIÊN 1: Đã có báo cáo sai lệch
+                        discrepancy.push(sod);
+                    } else if (hasAnyUrgentRequest) {
+                        // ƯU TIÊN 2: Đã có yêu cầu gấp
+                        shortage.push(sod);
+                    } else if (isDue && isPlanSufficient) {
+                        // ƯU TIÊN 3: Đơn đủ hàng đến hạn
+                        sufficient.push(sod);
+                    }
                 }
                 // Dòng hàng 'Thiếu' (Shortage) mà Sale chưa xử lý sẽ ẩn hoàn toàn khỏi Kho theo yêu cầu
             } else {
@@ -526,10 +568,11 @@ const App: React.FC = () => {
         });
 
         return {
+            processedDiscrepancySods: discrepancy,
             processedShortageSods: sortedShortage,
             processedSufficientSods: sufficient
         };
-    }, [sods, searchTerm, statusFilter, currentRole]);
+    }, [sods, searchTerm, statusFilter, currentRole, isRequestCreator]);
 
     const renderRoleIndicator = () => {
         const displayRoleName = currentDepartment || currentRole;
@@ -794,8 +837,60 @@ const App: React.FC = () => {
                             </div>
 
                             <div className="space-y-12">
+                                {/* [NEW] LIST 0: REQUEST SAI LỆCH (DÀNH CHO CẢ SALE & KHO) */}
+                                {(currentRole === UserRole.SALE || currentRole === UserRole.WAREHOUSE) && processedDiscrepancySods.length > 0 && (
+                                    <div className="group/list border-2 rounded-[2rem] transition-all duration-500 overflow-hidden bg-white border-indigo-100 shadow-xl shadow-indigo-500/5">
+                                        <button
+                                            className="flex items-center justify-between w-full p-8 transition-all active:scale-[0.99] bg-indigo-50/30"
+                                            onClick={() => setIsShortageExpanded(!isShortageExpanded)}
+                                        >
+                                            <div className="flex items-center gap-6">
+                                                <div className="p-4 rounded-2xl shadow-lg transition-all duration-500 bg-indigo-500 text-white scale-110 rotate-0">
+                                                    <AlertTriangle className="w-7 h-7" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <div className="flex items-start gap-1">
+                                                        <span className="block font-black uppercase tracking-tighter text-2xl leading-none text-gray-900">
+                                                            {currentRole === UserRole.SALE ? 'Request từ Kho' : 'Báo cáo sai lệch'}
+                                                        </span>
+                                                        <div className="px-2 py-0.5 rounded-full font-black text-[10px] shadow-sm transform -translate-y-2 transition-all duration-500 bg-indigo-500 text-white">
+                                                            {processedDiscrepancySods.length}
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-[11px] font-bold uppercase tracking-widest text-indigo-600/70 mt-1.5 block">
+                                                        {currentRole === UserRole.SALE ? 'Kho đã kiểm kê thấy sai lệch, cần xử lý phương án' : 'Yêu cầu kiểm tra số liệu tồn kho thực tế'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="p-2.5 rounded-xl transition-all duration-500 bg-indigo-100 text-indigo-600 rotate-0">
+                                                <ChevronDown className="w-6 h-6" />
+                                            </div>
+                                        </button>
+
+                                        <div className="p-8 pt-0 space-y-8 animate-in slide-in-from-top-4 fade-in duration-500">
+                                            <div className="grid grid-cols-1 gap-6">
+                                                {processedDiscrepancySods.map(sod => (
+                                                    <SODCard
+                                                        key={sod.id}
+                                                        sod={sod}
+                                                        currentRole={currentRole}
+                                                        recordId={contextRecordId}
+                                                        onUpdate={handleUpdateSOD}
+                                                        onNotifySale={handleCardNotify}
+                                                        onSaveState={handleManualSave}
+                                                        saleId={saleId}
+                                                        customerIndustryType={selectedCustomer?.industryType}
+                                                        currentDepartment={currentDepartment}
+                                                        isRequestCreator={false}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* LIST 1: SHORTAGE ITEMS (MAIN) - HIDDEN FOR WAREHOUSE */}
-                                {((currentRole !== UserRole.WAREHOUSE) || (currentRole === UserRole.WAREHOUSE && processedShortageSods.length > 0)) && (
+                                {((currentRole !== UserRole.WAREHOUSE) || (currentRole === UserRole.WAREHOUSE && processedShortageSods.length > 0)) && processedShortageSods.length > 0 && (
                                     <div className={`group/list border-2 rounded-[2rem] transition-all duration-500 overflow-hidden ${isShortageExpanded ? 'bg-white border-indigo-100 shadow-xl shadow-indigo-500/5' : 'bg-gray-50/50 border-gray-200'}`}>
                                         <button
                                             className={`flex items-center justify-between w-full p-8 transition-all active:scale-[0.99] ${isShortageExpanded ? 'bg-indigo-50/30' : 'bg-transparent hover:bg-gray-100/50'}`}
@@ -815,7 +910,7 @@ const App: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <span className="text-[11px] font-bold uppercase tracking-widest text-indigo-600/70 mt-1.5 block">
-                                                        {currentRole === UserRole.WAREHOUSE ? 'Các đơn hàng tương lai có khả năng giao sớm' : (currentRole === UserRole.SALE ? 'Các dòng hàng đang bị thiếu hụt cần xử lý phương án cung ứng' : 'Các dòng hàng cần xử lý phương án cung ứng hoặc giao hàng')}
+                                                        {currentRole === UserRole.WAREHOUSE ? 'Các đơn hàng tương lai có khả năng giao sớm' : 'Các dòng hàng đang bị thiếu hụt cần xử lý phương án cung ứng'}
                                                     </span>
                                                 </div>
                                             </div>
@@ -840,6 +935,7 @@ const App: React.FC = () => {
                                                                 saleId={saleId}
                                                                 customerIndustryType={selectedCustomer?.industryType}
                                                                 currentDepartment={currentDepartment}
+                                                                isRequestCreator={isRequestCreator}
                                                             />
                                                         ))}
                                                     </div>
@@ -870,14 +966,14 @@ const App: React.FC = () => {
                                                 <div className="text-left">
                                                     <div className="flex items-start gap-1">
                                                         <span className={`block font-black uppercase tracking-tighter text-2xl leading-none ${isSufficientExpanded ? 'text-gray-900' : 'text-gray-500'}`}>
-                                                            {currentRole === UserRole.SALE ? 'Đơn gấp khả thi' : (currentRole === UserRole.WAREHOUSE ? 'Request xuất kho' : 'Items Approved')}
+                                                            {currentRole === UserRole.SALE ? 'Đơn gấp khả thi' : (currentRole === UserRole.WAREHOUSE ? (isRequestCreator ? 'Báo cáo sai lệch' : 'Request xuất kho') : 'Items Approved')}
                                                         </span>
                                                         <div className={`px-2 py-0.5 rounded-full font-black text-[10px] shadow-sm transform -translate-y-2 transition-all duration-500 ${isSufficientExpanded ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
                                                             {processedSufficientSods.length}
                                                         </div>
                                                     </div>
                                                     <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-600/70 mt-1.5 block">
-                                                        {currentRole === UserRole.SALE ? 'Các đơn hàng tương lai có khả năng giao sớm' : (currentRole === UserRole.WAREHOUSE ? 'Xử lý xuất kho, đơn gấp và báo cáo sai lệch' : 'Các dòng hàng đủ tiêu chuẩn (Sufficient)')}
+                                                        {currentRole === UserRole.SALE ? 'Các đơn hàng tương lai có khả năng giao sớm' : (currentRole === UserRole.WAREHOUSE ? (isRequestCreator ? 'Kho tạo yêu cầu kiểm tra số liệu tồn kho' : 'Xử lý xuất kho, đơn gấp và báo cáo sai lệch') : 'Các dòng hàng đủ tiêu chuẩn (Sufficient)')}
                                                     </span>
                                                 </div>
                                             </div>
@@ -900,6 +996,7 @@ const App: React.FC = () => {
                                                         saleId={saleId}
                                                         customerIndustryType={selectedCustomer?.industryType}
                                                         currentDepartment={currentDepartment}
+                                                        isRequestCreator={isRequestCreator}
                                                     />
                                                 ))}
                                             </div>
