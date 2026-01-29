@@ -10,7 +10,7 @@ import { SaleShortageCard } from './Sale/SaleShortageCard';
 import { SaleUrgentCard } from './Sale/SaleUrgentCard';
 import { SaleDiscrepancyCard } from './Sale/SaleDiscrepancyCard'; // [NEW] Request sai lệch từ Kho
 import { WarehouseRequestCard } from './Warehouse/WarehouseRequestCard';
-import { WarehouseActionCard } from './Warehouse/WarehouseActionCard';
+// [DEPRECATED] import { WarehouseActionCard } from './Warehouse/WarehouseActionCard';
 import { WarehouseUrgentCard } from './Warehouse/WarehouseUrgentCard'; // [NEW]
 import {
     ChevronDown,
@@ -278,33 +278,39 @@ export const SODCard: React.FC<SODCardProps> = ({ sod, currentRole, onUpdate, on
 
         const hasDiscrepancyReport = !!sod.warehouseVerification;
         console.log('[DEBUG] SOD warehouseVerification:', sod.id, sod.warehouseVerification, 'hasDiscrepancyReport:', hasDiscrepancyReport, 'isRequestCreator:', isRequestCreator);
-        const hasSaleShipDecision = sod.saleDecision?.action === 'SHIP_PARTIAL' || sod.saleDecision?.action === 'SHIP_AND_CLOSE';
+        // [DEPRECATED - 2026-01-29] Các biến dưới đây không còn dùng vì WarehouseActionCard đã bị ẩn
+        // const hasSaleShipDecision = sod.saleDecision?.action === 'SHIP_PARTIAL' || sod.saleDecision?.action === 'SHIP_AND_CLOSE';
 
         // Kho vào app + history null = Kho đang TẠO request sai lệch -> hiện card "Báo cáo sai lệch"
         // Kho vào app + history có data = Kho đang XỬ LÝ request từ Sale -> hiện card "Yêu cầu xuất kho"
         const isWarehouseCreatingRequest = isRequestCreator && isWarehouseUser;
 
-        // Card Xuất kho: Hiện khi Kho XỬ LÝ request (history có data) và chưa có báo cáo sai lệch
-        const shouldShowExportCard = !isWarehouseCreatingRequest && !hasDiscrepancyReport && (
-            (sod.statusFromPlan === 'Đủ' && isDateDue()) ||
-            hasSaleShipDecision ||
-            !!sod.warehouseConfirmation
-        );
+        // [DEPRECATED] Card Xuất kho đã bị ẩn - Kho không còn submit request giao hàng
+        // const shouldShowExportCard = !isWarehouseCreatingRequest && !hasDiscrepancyReport && (
+        //     (sod.statusFromPlan === 'Đủ' && isDateDue()) ||
+        //     hasSaleShipDecision ||
+        //     !!sod.warehouseConfirmation
+        // );
 
         // Card Báo cáo sai lệch: Hiện khi Kho TẠO request (history null) HOẶC đã có warehouseVerification
         const shouldShowRequestCard = isWarehouseCreatingRequest || hasDiscrepancyReport;
 
         return (
             <div className="space-y-6">
-                {/* Card Yêu cầu xuất kho - Hiện khi đơn đủ hàng và KHÔNG có báo cáo sai lệch */}
-                {shouldShowExportCard && (
-                    <WarehouseActionCard
-                        sod={sod}
-                        recordId={recordId}
-                        onUpdate={onUpdate}
-                        onSaveState={onSaveState}
-                    />
-                )}
+                {/* 
+                    [DEPRECATED - 2026-01-29] WarehouseActionCard đã bị ẩn
+                    Lý do: Kho không còn submit request giao hàng nữa, chỉ còn xử lý đơn gấp.
+                    Code giữ lại để có thể bật lại sau này nếu cần.
+                    
+                    {shouldShowExportCard && (
+                        <WarehouseActionCard
+                            sod={sod}
+                            recordId={recordId}
+                            onUpdate={onUpdate}
+                            onSaveState={onSaveState}
+                        />
+                    )}
+                */}
 
                 {/* Card Báo cáo sai lệch - Hiện độc lập khi có warehouseVerification */}
                 {shouldShowRequestCard && (
