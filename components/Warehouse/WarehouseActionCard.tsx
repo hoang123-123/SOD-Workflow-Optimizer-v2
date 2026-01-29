@@ -1,18 +1,8 @@
 import React, { useState } from 'react';
 import { SOD } from '../../types';
 import { StatusBadge } from '../Badge';
-import { LabelText } from '../Typography';
-import { executeBusinessRule } from '../../logic/ruleEngine';
 import { WarehouseActionZone } from '../WarehouseActionZone';
-import {
-    ChevronDown,
-    Zap,
-    Loader2,
-    Check,
-    X,
-    PackageCheck,
-    ClipboardList
-} from 'lucide-react';
+import { ChevronDown, PackageCheck } from 'lucide-react';
 
 interface WarehouseActionCardProps {
     sod: SOD;
@@ -48,37 +38,36 @@ export const WarehouseActionCard: React.FC<WarehouseActionCardProps> = ({
     }
 
     return (
-        <div className="bg-white border-2 rounded-[2rem] transition-all overflow-hidden shadow-sm hover:shadow-md mb-6 border-emerald-100">
+        <div className="bg-white border border-gray-200 rounded-xl transition-all overflow-hidden hover:border-emerald-200">
             {/* Header */}
-            <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-emerald-50">
-                <div className="flex items-start gap-4 flex-1">
-                    <div className="p-3 rounded-2xl border shadow-sm shrink-0 bg-emerald-50 text-emerald-600 border-emerald-100">
-                        <PackageCheck className="w-6 h-6" />
+            <div className="px-3 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-100">
+                <div className="flex items-start gap-3 flex-1">
+                    <div className="p-2 rounded-lg shrink-0 bg-emerald-50 text-emerald-600">
+                        <PackageCheck className="w-4 h-4" />
                     </div>
                     <div>
-                        <div className="font-black text-gray-900 text-lg leading-tight mb-1 uppercase tracking-tighter">Yêu cầu xuất kho</div>
-                        <div className="font-extrabold text-gray-600 text-sm leading-tight truncate uppercase tracking-tight mb-1">{sod.detailName}</div>
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
-                            <span className="font-bold bg-gray-100 px-2 py-0.5 rounded-lg text-gray-700 border border-gray-200">{sod.product.sku}</span>
+                        <div className="font-semibold text-gray-900 text-sm leading-tight">{sod.detailName}</div>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+                            <span className="font-semibold bg-gray-100 px-1.5 py-0.5 rounded text-emerald-600 text-[10px]">{sod.product.sku}</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-8 shrink-0">
+                <div className="flex items-center gap-4 shrink-0 ml-auto md:ml-0">
                     <div className="flex flex-col items-end">
-                        <LabelText className="text-[9px] uppercase tracking-widest font-black mb-1 text-emerald-600">Số lượng Đơn/Kho</LabelText>
+                        <span className="text-[9px] uppercase tracking-wide text-gray-400">Số lượng Đơn/Kho</span>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-2xl font-black text-gray-900">{rs}</span>
-                            <span className="text-gray-200 mx-1">/</span>
-                            <span className="text-lg font-bold text-emerald-600/60">{rs * (sod.conversionRate || 1)}</span>
+                            <span className="text-lg font-bold text-gray-900">{rs}</span>
+                            <span className="text-gray-300 mx-0.5">/</span>
+                            <span className="text-sm font-medium text-emerald-600">{rs * (sod.conversionRate || 1)}</span>
                         </div>
                     </div>
-
-                    <div className="flex items-center gap-3">
+                    <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
+                    <div className="flex items-center gap-2">
                         <StatusBadge sod={sod} />
                         <button
                             onClick={() => setIsWorkflowExpanded(!isWorkflowExpanded)}
-                            className={`p-2 rounded-xl transition-all ${isWorkflowExpanded ? 'bg-gray-100 text-indigo-600' : 'bg-gray-50 text-gray-400 rotate-180'}`}
+                            className={`p-1 rounded-md transition-all duration-300 ${isWorkflowExpanded ? 'rotate-0 text-emerald-600' : 'rotate-180 text-gray-400'}`}
                         >
                             <ChevronDown className="w-5 h-5" />
                         </button>
@@ -88,7 +77,7 @@ export const WarehouseActionCard: React.FC<WarehouseActionCardProps> = ({
 
             {/* Content: Actions Zone */}
             {isWorkflowExpanded && (
-                <div className="p-6">
+                <div className="px-3 py-3">
                     <WarehouseActionZone
                         sod={sod}
                         canAct={!sod.warehouseConfirmation}
