@@ -474,8 +474,11 @@ export const DemoModePanel: React.FC<DemoModePanelProps> = ({
                             <FlaskConical className="w-6 h-6" />
                             <h1 className="text-xl font-black uppercase tracking-wider">Workflow Demo</h1>
                         </div>
-                        <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
-                            Chỉ Admin thấy
+                        <span className={`text-xs px-3 py-1 rounded-full border ${primaryRole === UserRole.ADMIN
+                                ? 'text-purple-400 bg-purple-500/10 border-purple-500/30'
+                                : 'text-slate-400 bg-slate-800 border-slate-700'
+                            }`}>
+                            {primaryRole === UserRole.ADMIN ? 'Admin - Xem tất cả' : `Phòng ${primaryRole}`}
                         </span>
                     </div>
                     <button

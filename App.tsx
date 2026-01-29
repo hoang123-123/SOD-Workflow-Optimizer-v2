@@ -604,10 +604,10 @@ const App: React.FC = () => {
                 {/* [UPDATED] Demo Mode button - Mọi role đều thấy */}
                 <button
                     onClick={handleLoadDemoData}
-                    className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 transition-all shadow-lg active:scale-95 group"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-purple-500 hover:bg-purple-600 text-white transition-all shadow-lg shadow-purple-500/30 active:scale-95 group"
                 >
                     <FlaskConical className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Demo</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">Demo Mode</span>
                 </button>
 
                 {contextRecordId && saveStatus !== 'IDLE' && (
