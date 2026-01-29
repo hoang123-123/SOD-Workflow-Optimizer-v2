@@ -6,6 +6,7 @@ import { WorkflowGuide } from './components/WorkflowGuide';
 import { fetchCustomerById, fetchOrdersByCustomer, fetchSODsByOrder, updateRequestHistory, fetchRequestHistory } from './services/dataverse';
 import { notifySaleOnShortage } from './services/flowTriggers';
 import { generateDemoScenarios } from './services/sampleData'; // Import Demo Data Generator
+import { DemoModePanel } from './components/Admin/DemoModePanel'; // [NEW] Demo Mode cho Admin
 import { Users, Search, Database, ChevronDown, Check, X, Package, Building2, Warehouse, ShieldCheck, RefreshCw, Cloud, AlertTriangle, Factory, UserCircle2, BookOpen, FlaskConical, PackageCheck, ChevronUp, LayoutGrid } from 'lucide-react';
 
 // --- DEPARTMENT MAPPING CONFIGURATION ---
@@ -51,6 +52,7 @@ const normalizeId = (id: string | null | undefined) => {
 
 const App: React.FC = () => {
     const [currentRole, setCurrentRole] = useState<UserRole>(UserRole.ADMIN);
+    const [primaryRole, setPrimaryRole] = useState<UserRole>(UserRole.ADMIN); // [NEW] Lưu role gốc để giữ quyền chuyển đổi
     const [currentDepartment, setCurrentDepartment] = useState<string>('');
     const [saleId, setSaleId] = useState<string | null>(null);
     const [contextRecordId, setContextRecordId] = useState<string>('');
@@ -214,12 +216,15 @@ const App: React.FC = () => {
 
                 if (saleIDParam) setSaleId(saleIDParam);
 
-                if (directRoleParam === 'SOURCE') setCurrentRole(UserRole.SOURCE);
-                else if (directRoleParam === 'WAREHOUSE' || directRoleParam === 'KHO') setCurrentRole(UserRole.WAREHOUSE);
-                else if (directRoleParam === 'VIEWER') setCurrentRole(UserRole.VIEWER);
-                else if (directRoleParam === 'ADMIN') setCurrentRole(UserRole.ADMIN);
-                else if (directDeptParam) setCurrentRole(getRoleFromDepartment(directDeptParam));
-                else setCurrentRole(UserRole.ADMIN);
+                let initialRole = UserRole.ADMIN;
+                if (directRoleParam === 'SOURCE') initialRole = UserRole.SOURCE;
+                else if (directRoleParam === 'WAREHOUSE' || directRoleParam === 'KHO') initialRole = UserRole.WAREHOUSE;
+                else if (directRoleParam === 'VIEWER') initialRole = UserRole.VIEWER;
+                else if (directRoleParam === 'ADMIN') initialRole = UserRole.ADMIN;
+                else if (directDeptParam) initialRole = getRoleFromDepartment(directDeptParam);
+
+                setCurrentRole(initialRole);
+                setPrimaryRole(initialRole);
 
                 if (!customerId || customerId === 'undefined' || customerId === 'null') {
                     // Default to the first test customer if no specific customer is provided
@@ -631,16 +636,16 @@ const App: React.FC = () => {
 
                 <div className="relative" ref={roleMenuRef}>
                     <button
-                        onClick={() => currentRole === UserRole.ADMIN && setIsRoleMenuOpen(!isRoleMenuOpen)}
-                        disabled={currentRole !== UserRole.ADMIN}
+                        onClick={() => primaryRole === UserRole.ADMIN && setIsRoleMenuOpen(!isRoleMenuOpen)}
+                        disabled={primaryRole !== UserRole.ADMIN}
                         className={`flex items-center gap-3 px-5 py-2 rounded-2xl border transition-all shadow-xl active:scale-95 group 
-                            ${currentRole === UserRole.ADMIN
+                            ${primaryRole === UserRole.ADMIN
                                 ? 'border-slate-700 bg-slate-800 hover:bg-slate-700'
                                 : 'border-slate-800 bg-slate-900/50 opacity-60 cursor-not-allowed'}`}
                     >
-                        {React.createElement(currentIcon, { className: `w-4 h-4 group-hover:scale-110 transition-all ${currentRole === UserRole.ADMIN ? 'text-indigo-400' : 'text-slate-500'}` })}
+                        {React.createElement(currentIcon, { className: `w-4 h-4 group-hover:scale-110 transition-all ${primaryRole === UserRole.ADMIN ? 'text-indigo-400' : 'text-slate-500'}` })}
                         <span className="text-[10px] font-black text-slate-200 uppercase tracking-widest truncate max-w-[150px]">{displayRoleName}</span>
-                        {currentRole === UserRole.ADMIN && <ChevronDown className="w-4 h-4 text-slate-500 group-hover:translate-y-0.5 transition-transform" />}
+                        {primaryRole === UserRole.ADMIN && <ChevronDown className="w-4 h-4 text-slate-500 group-hover:translate-y-0.5 transition-transform" />}
                     </button>
 
                     {isRoleMenuOpen && (
@@ -696,7 +701,7 @@ const App: React.FC = () => {
                                 className="appearance-none block w-full h-12 pl-12 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer shadow-sm"
                                 value={selectedCustomer?.id || ''}
                                 onChange={(e) => handleCustomerSwitch(e.target.value)}
-                                disabled={currentRole !== UserRole.ADMIN}
+                                disabled={primaryRole !== UserRole.ADMIN}
                             >
                                 {customerOptions.map(id => {
                                     const isSelected = normalizeId(id) === normalizeId(selectedCustomer?.id);
@@ -1029,6 +1034,13 @@ const App: React.FC = () => {
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
             `}</style>
+
+            {/* [NEW] Demo Mode Panel - Chỉ Admin thấy */}
+            <DemoModePanel
+                primaryRole={primaryRole}
+                currentRole={currentRole}
+                onRoleChange={setCurrentRole}
+            />
         </div>
     );
 };

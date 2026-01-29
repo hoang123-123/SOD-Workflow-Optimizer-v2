@@ -72,7 +72,7 @@ const fetchFromDataverse = async (path: string, onProgress?: (items: any[]) => v
         const token = await getAccessToken();
         // Khởi tạo URL ban đầu
         let url = `${DATAVERSE_CONFIG.ORG_URL}/api/data/v9.2/${path}`;
-        console.log("URL", url);
+
         const allRecords: any[] = [];
 
         // Vòng lặp lấy dữ liệu nếu có phân trang
@@ -106,7 +106,7 @@ const fetchFromDataverse = async (path: string, onProgress?: (items: any[]) => v
             url = data['@odata.nextLink'] || null;
         }
 
-        console.log("Data SOD fetched successfully", allRecords);
+
         return { value: allRecords };
     } catch (error: any) {
         // Bắt lỗi 'Failed to fetch' (thường là CORS hoặc Network)
@@ -282,7 +282,9 @@ export const fetchSODsByOrder = async (orderId: string, soNumber: string): Promi
             expectedDate: item.crdfd_ngaygiaodukientonghop
         });
 
-        const qtyOrdered = item.crdfd_soluongconlaitheokhonew || 0;
+        // [FIX] qtyOrdered lấy từ cr1bb_soluongconlaitheoon (số lượng đơn hàng)
+        // thay vì crdfd_soluongconlaitheokhonew (tên confusing - có thể là số theo kho)
+        const qtyOrdered = qtyOrderRemainingON || item.crdfd_soluongconlaitheokhonew || 0;
 
         // [MODIFIED] Khả dụng lấy từ DB (soluongthucsoan), nếu null/0 thì là 0
         const qtyAvailable = qtyActualPicked;

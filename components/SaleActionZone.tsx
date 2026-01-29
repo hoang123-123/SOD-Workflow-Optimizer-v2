@@ -48,17 +48,18 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
     // [NEW] Kiểm tra xem khách hàng có phải là Nhà máy (Factory) không
     const isFactory = Number(customerIndustryType) === INDUSTRY_FACTORY;
 
-    // [RULE CHANGE] Các option chọn (Ship/Wait/Cancel) CHỈ xuất hiện nếu:
-    // - Đơn ĐÃ ĐẾN HẠN (isDue)
-    // - VÀ ĐANG THIẾU (!isSufficient)
+    // [RULE] Các option chọn cho Sale:
+    // - Option SHIP: Hiện khi đơn thiếu và có hàng khả dụng
+    // - Option WAIT: Chỉ hiện khi Kho ĐÃ GỬI notification (xác nhận số liệu thực)
+    // - Option CANCEL: Chỉ hiện nếu KHÔNG PHẢI là Factory
     const showOptionShip = isDue && !isSufficient && autoShipQty > 0;
-    const showOptionWait = isDue && !isSufficient && sod.isNotificationSent === true;
-    const showOptionCancel = isDue && !isSufficient; // [FIX] Cả Factory và không Factory đều có option Hủy
+    const showOptionWait = isDue && !isSufficient && sod.isNotificationSent === true; // Chờ hàng = chờ Source, chỉ khi Kho đã xác nhận thiếu
+    const showOptionCancel = isDue && !isSufficient && !isFactory; // Factory không có option Hủy
 
     const renderDecisionText = (action: 'SHIP_PARTIAL' | 'SHIP_AND_CLOSE' | 'WAIT_ALL' | 'CANCEL_ORDER' | 'REJECT_REPORT') => {
         if (action === 'SHIP_PARTIAL') {
             // Factory: Chỉ giao, không chốt
-            return `Đã xác nhận giao ${sod.saleDecision?.quantity || autoShipQty} ${unitOrder} (Đợt ${currentK})`;
+            return `Đã xác nhận giao ${sod.saleDecision?.quantity || autoShipQty} ${unitOrder}`;
         }
         if (action === 'SHIP_AND_CLOSE') {
             // Non-Factory: Giao & Chốt
@@ -78,17 +79,17 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
         if (isFactory) {
             return {
                 SHIP: {
-                    title: `Giao ${qtyToShip} ${unitOrder} (Đợt ${currentK})`,
+                    title: `Giao ${qtyToShip} ${unitOrder}`,
                     desc: qtyShortage > 0
                         ? `Giao số lượng có sẵn. Còn lại ${qtyShortage} ${unitOrder} sẽ giao sau khi có hàng.`
-                        : `Giao toàn bộ ${qtyToShip} ${unitOrder} và hoàn tất dòng hàng.`
+                        : `Giao toàn bộ ${qtyToShip} ${unitOrder} và hoàn tất đơn hàng.`
                 },
                 WAIT: {
                     title: "Chờ bổ sung hàng",
                     desc: `Kho báo thiếu ${qtyShortage} ${unitOrder}. Tiếp tục treo đơn để chờ hàng bổ sung.`
                 },
                 CANCEL: {
-                    title: "Hủy dòng hàng này",
+                    title: "Hủy đơn hàng này",
                     desc: "" // Factory không có option này
                 }
             };
@@ -100,15 +101,15 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
                 title: `Giao ${qtyToShip} ${unitOrder} & CHỐT DÒNG`,
                 desc: qtyShortage > 0
                     ? `Giao số lượng có sẵn. Hệ thống sẽ chốt đơn và HỦY phần thiếu ${qtyShortage} ${unitOrder}.`
-                    : `Giao toàn bộ số lượng yêu cầu và chốt dòng hàng.`
+                    : `Giao toàn bộ số lượng yêu cầu và chốt đơn hàng.`
             },
             WAIT: {
                 title: "Chờ bổ sung hàng",
                 desc: `Kho báo thiếu ${qtyShortage} ${unitOrder}. Tiếp tục treo đơn để chờ hàng bổ sung từ Source.`
             },
             CANCEL: {
-                title: "Hủy dòng hàng này",
-                desc: "Không giao dở dang. Hủy bỏ toàn bộ dòng hàng này khỏi đơn hàng."
+                title: "Hủy đơn hàng này",
+                desc: "Không giao dở dang. Hủy bỏ toàn bộ đơn hàng này."
             }
         };
     };
