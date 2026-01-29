@@ -109,8 +109,32 @@ export const DemoModePanel: React.FC<DemoModePanelProps> = ({
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [pendingAction, setPendingAction] = useState<{ toRole: UserRole; description: string } | null>(null);
 
-    // Chỉ Admin mới thấy
-    if (primaryRole !== UserRole.ADMIN) return null;
+    // [UPDATED] Mọi role đều có thể vào Demo Mode
+    // Admin thấy tất cả cases, các role khác chỉ thấy cases liên quan đến họ
+    const getFilteredTestCases = (): DemoTestCase[] => {
+        if (primaryRole === UserRole.ADMIN) {
+            return DEMO_TEST_CASES; // Admin thấy tất cả
+        }
+
+        // Filter cases theo role
+        return DEMO_TEST_CASES.filter(tc => {
+            // Sale thấy: cases thiếu hàng + cases Kho→Sale
+            if (primaryRole === UserRole.SALE) {
+                return tc.id.startsWith('SALE_REQ') || tc.id.startsWith('WH_REQ');
+            }
+            // Warehouse thấy: đơn gấp + cases đã xử lý
+            if (primaryRole === UserRole.WAREHOUSE) {
+                return tc.id.startsWith('URGENT') || tc.id.startsWith('PROCESSED');
+            }
+            // Source thấy: cases chờ hàng (nếu có)
+            if (primaryRole === UserRole.SOURCE) {
+                return tc.id.includes('SOURCE') || false;
+            }
+            return false;
+        });
+    };
+
+    const filteredTestCases = getFilteredTestCases();
 
     // Load payload logs từ localStorage
     useEffect(() => {
@@ -546,17 +570,17 @@ export const DemoModePanel: React.FC<DemoModePanelProps> = ({
                                 >
                                     <option value="">-- Chọn một test case --</option>
                                     <optgroup label="Sale TẠO Request (Kho sẽ nhận)">
-                                        {DEMO_TEST_CASES.filter(tc => tc.id.startsWith('SALE_')).map(tc => (
+                                        {filteredTestCases.filter(tc => tc.id.startsWith('SALE_')).map(tc => (
                                             <option key={tc.id} value={tc.id}>{tc.name}</option>
                                         ))}
                                     </optgroup>
                                     <optgroup label="Kho GỬI Notification (Sale sẽ nhận)">
-                                        {DEMO_TEST_CASES.filter(tc => tc.id.startsWith('WH_')).map(tc => (
+                                        {filteredTestCases.filter(tc => tc.id.startsWith('WH_')).map(tc => (
                                             <option key={tc.id} value={tc.id}>{tc.name}</option>
                                         ))}
                                     </optgroup>
                                     <optgroup label="Đơn Gấp">
-                                        {DEMO_TEST_CASES.filter(tc => tc.id.startsWith('URGENT_')).map(tc => (
+                                        {filteredTestCases.filter(tc => tc.id.startsWith('URGENT_')).map(tc => (
                                             <option key={tc.id} value={tc.id}>{tc.name}</option>
                                         ))}
                                     </optgroup>

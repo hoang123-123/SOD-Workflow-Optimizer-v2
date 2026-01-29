@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { SOD, UserRole, SODStatus, Customer, SalesOrder } from './types';
 import { SODCard } from './components/SODCard';
-import { WorkflowGuide } from './components/WorkflowGuide';
+// WorkflowGuide removed - replaced by DemoModePanel
 import { fetchCustomerById, fetchOrdersByCustomer, fetchSODsByOrder, updateRequestHistory, fetchRequestHistory } from './services/dataverse';
 import { notifySaleOnShortage } from './services/flowTriggers';
 import { generateDemoScenarios } from './services/sampleData'; // Import Demo Data Generator
@@ -65,7 +65,7 @@ const App: React.FC = () => {
     const [showRestoredBadge, setShowRestoredBadge] = useState(false);
 
     // Modals
-    const [showWorkflowGuide, setShowWorkflowGuide] = useState(false);
+    // showWorkflowGuide removed - replaced by DemoModePanel
 
     // Dropdowns
     const [isOrderDropdownOpen, setIsOrderDropdownOpen] = useState(false);
@@ -601,23 +601,14 @@ const App: React.FC = () => {
 
         return (
             <div className="flex items-center gap-3">
+                {/* [UPDATED] Demo Mode button - Mọi role đều thấy */}
                 <button
-                    onClick={() => setShowWorkflowGuide(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-indigo-500/20 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition-all shadow-lg active:scale-95 group"
+                    onClick={handleLoadDemoData}
+                    className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 transition-all shadow-lg active:scale-95 group"
                 >
-                    <BookOpen className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Hướng dẫn</span>
+                    <FlaskConical className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Demo</span>
                 </button>
-
-                {currentRole === UserRole.ADMIN && (
-                    <button
-                        onClick={handleLoadDemoData}
-                        className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 transition-all shadow-lg active:scale-95 group"
-                    >
-                        <FlaskConical className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Demo</span>
-                    </button>
-                )}
 
                 {contextRecordId && saveStatus !== 'IDLE' && (
                     <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all duration-300 animate-in fade-in slide-in-from-right-4 
@@ -675,7 +666,7 @@ const App: React.FC = () => {
 
     return (
         <div className="min-h-screen pb-20 bg-gray-50 font-sans text-gray-800 relative">
-            <WorkflowGuide isOpen={showWorkflowGuide} onClose={() => setShowWorkflowGuide(false)} />
+            {/* WorkflowGuide removed - replaced by DemoModePanel */}
 
             {/* HEADER */}
             <header className="bg-white/90 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-40 px-6 py-4 shadow-sm">
