@@ -48,9 +48,11 @@ export interface UrgentRequest {
 }
 
 export interface WarehouseVerification {
-  actualQty: number; // Số lượng thực tế kho nhập
-  requestedQty: number; // Số lượng đơn kho xác nhận
-  requestedNeed?: number; // [NEW] Nhu cầu ban đầu lúc Kho submit (qtyOrdered - qtyDelivered)
+  actualQty: number; // Số lượng thực tế kho nhập (Đơn vị Kho - WH)
+  requestedQty: number; // Số lượng đơn kho xác nhận (Đơn vị Đơn - ON)
+  requestedNeed?: number; // [DEPRECATED] Dùng requestedNeedON/WH thay thế
+  requestedNeedON?: number; // [NEW] Nhu cầu đơn còn lại (ON) lúc Kho submit
+  requestedNeedWH?: number; // [NEW] Nhu cầu đơn còn lại (WH) lúc Kho submit
   timestamp: string;
   discrepancyType?: 'INVENTORY' | 'CONVERSION_RATE'; // [NEW] Loại sai lệch
   createdByDept?: string; // [NEW] Phòng ban tạo request (VD: Kho Miền Trung)

@@ -26,11 +26,11 @@ const DEPARTMENT_ROLE_MAP: { [key: string]: UserRole } = {
 // --- TEST CUSTOMERS CONFIGURATION (FOR ADMIN/TESTING) ---
 const TEST_CUSTOMER_IDS = [
     "09480845-9ace-f011-8544-000d3aa05927",
-    "066b26aa-b9a3-ee11-be37-000d3aa3fd6f"
+    "d1c527be-4f22-4a59-b013-242621addb40"
 ];
 
 // [DEV] Record ID phiếu demo để test
-const DEV_RECORD_ID = "da5fb5b6-b1f5-f011-8406-000d3aa213fd";
+const DEV_RECORD_ID = "48fd56b4-fbfb-f011-8406-000d3aa21281";
 
 const getRoleFromDepartment = (department: string | null): UserRole => {
     if (!department) return UserRole.ADMIN;

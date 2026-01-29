@@ -39,8 +39,12 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
     if (!wv) return null;
 
     // [FIX] Dữ liệu 100% từ báo cáo sai lệch của Kho (history)
-    const requestedQty = wv.requestedQty || 0; // Số lượng Kho báo có thể đáp ứng
-    const N = wv.requestedNeed || (sod.qtyOrdered - sod.qtyDelivered);
+    const requestedQtyON = wv.requestedQty || 0; // Số lượng Kho báo (Đơn vị Đơn - ON)
+    const requestedQtyWH = wv.actualQty || 0;    // Số lượng Kho báo (Đơn vị Kho - WH)
+
+    const N_ON = wv.requestedNeedON || (sod.qtyOrderRemainingON || 0); // Nhu cầu gốc ON
+    const N_WH = wv.requestedNeedWH || (sod.qtyOrderRemainingWH || 0); // Nhu cầu gốc WH
+
     const discrepancyType = wv.discrepancyType;
     const createdByDept = wv.createdByDept || 'Kho';
     const timestamp = wv.timestamp ? new Date(wv.timestamp).toLocaleString('vi-VN') : '';
@@ -63,7 +67,7 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
             const ruleId = `${rulePrefix}1`; // Case 1: SHIP
 
             const updatedSOD = await executeBusinessRule(ruleId, sod, recordId, {
-                quantity: requestedQty,
+                quantity: requestedQtyON,
                 isFactory: isFactory
             });
 
@@ -86,7 +90,7 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
             const ruleId = `${rulePrefix}4`; // [UPDATED] Use Rule A4/B4 for Reject Discrepancy (NOT Cancel)
 
             const updatedSOD = await executeBusinessRule(ruleId, sod, recordId, {
-                quantity: N // Giữ số lượng nhu cầu gốc (dùng để báo notify)
+                quantity: N_ON // Giữ số lượng nhu cầu gốc (dùng để báo notify)
             });
 
             onUpdate(updatedSOD);
@@ -191,16 +195,28 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
                         </h4>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Nhu cầu đơn */}
+                            {/* Số lượng đơn hàng (Nhu cầu gốc) */}
                             <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-                                <span className="text-[11px] uppercase tracking-widest font-black text-gray-400 block mb-1">Nhu cầu đơn ban đầu</span>
-                                <span className="text-xl font-black text-gray-900">{N} {unitOrder}</span>
+                                <span className="text-[11px] uppercase tracking-widest font-black text-gray-400 block mb-2">Số lượng đơn hàng (Gốc)</span>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-xl font-black text-gray-900">{N_ON}</span>
+                                    <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-lg border border-gray-200 uppercase">{unitOrder}</span>
+                                    <span className="text-gray-300 mx-1">/</span>
+                                    <span className="text-xl font-black text-gray-400">{N_WH}</span>
+                                    <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100 uppercase">{sod.unitWarehouseName || 'WH'}</span>
+                                </div>
                             </div>
 
                             {/* Số lượng đơn (Số lượng kho nhập) */}
                             <div className="bg-indigo-100/50 rounded-2xl p-4 border border-indigo-200 shadow-sm group-hover:bg-indigo-100 transition-colors">
-                                <span className="text-[11px] uppercase tracking-widest font-black text-indigo-600 block mb-1">Số lượng đơn (Số lượng kho nhập)</span>
-                                <span className="text-xl font-black text-indigo-700">{requestedQty} {unitOrder}</span>
+                                <span className="text-[11px] uppercase tracking-widest font-black text-indigo-600 block mb-2">Số lượng đơn (Kho nhập thực tế)</span>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-xl font-black text-indigo-700">{requestedQtyON}</span>
+                                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-lg border border-indigo-200 uppercase">{unitOrder}</span>
+                                    <span className="text-indigo-400 mx-1">/</span>
+                                    <span className="text-xl font-black text-indigo-700">{requestedQtyWH}</span>
+                                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-lg border border-indigo-200 uppercase">{sod.unitWarehouseName || 'WH'}</span>
+                                </div>
                             </div>
                         </div>
 

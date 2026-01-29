@@ -114,7 +114,8 @@ export const executeBusinessRule = async (
             updatedSOD.warehouseVerification = {
                 actualQty: params.actualQty || 0,
                 requestedQty: params.requestedQty || 0,
-                requestedNeed: sod.qtyOrdered - sod.qtyDelivered, // [NEW] Lưu nhu cầu ban đầu
+                requestedNeedON: sod.qtyOrderRemainingON || 0, // [NEW] Lưu nhu cầu ON
+                requestedNeedWH: sod.qtyOrderRemainingWH || 0, // [NEW] Lưu nhu cầu WH
                 discrepancyType: params.discrepancyType,
                 createdByDept: params.dept,
                 actor: params.actor,
