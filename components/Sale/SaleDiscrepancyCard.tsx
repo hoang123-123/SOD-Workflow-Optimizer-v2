@@ -145,23 +145,23 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
     };
 
     return (
-        <div className="bg-white border-2 border-indigo-100 rounded-[2rem] transition-all overflow-hidden shadow-sm hover:shadow-md mb-6 group">
+        <div className="bg-white border border-indigo-100 rounded-xl transition-all overflow-hidden hover:border-indigo-200">
             {/* Header - Chứa các nút hành động mới */}
             <div
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer"
+                className="px-3 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
             >
                 {/* Left: Product Info */}
-                <div className="flex items-center gap-5 flex-1">
-                    <div className="p-4 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-sm shrink-0 flex items-center justify-center">
-                        <AlertTriangle className="w-6 h-6" />
+                <div className="flex items-center gap-3 flex-1">
+                    <div className={`p-2 rounded-lg transition-all ${isExpanded ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600'}`}>
+                        <AlertTriangle className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                        <div className="font-extrabold text-gray-600 text-sm leading-tight truncate uppercase tracking-tight">
+                        <div className="font-semibold text-gray-900 text-sm leading-tight truncate">
                             {sod.detailName}
                         </div>
-                        <div className="flex items-center gap-2 mt-2 flex-wrap">
-                            <span className="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded-lg border border-gray-200 uppercase">
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+                            <span className="font-semibold bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 text-[10px]">
                                 {sod.product.sku}
                             </span>
                         </div>
@@ -169,46 +169,46 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
                 </div>
 
                 {/* Right: Actions in Header (New Design) */}
-                <div className="flex items-center gap-4 shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
                     {sod.saleDecision ? (
                         <div className="flex items-center gap-2">
                             {sod.saleDecision.action === 'SHIP_PARTIAL' || sod.saleDecision.action === 'SHIP_AND_CLOSE' ? (
-                                <div className="h-10 px-4 bg-emerald-50 text-[#00966d] border border-emerald-200 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
-                                    <Check className="w-4 h-4" strokeWidth={4} />
-                                    ĐÃ XÁC NHẬN GIAO
+                                <div className="h-8 px-3 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg font-bold text-[10px] uppercase tracking-wide flex items-center gap-1.5">
+                                    <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                                    Đã giao
                                 </div>
                             ) : sod.saleDecision.action === 'WAIT_ALL' ? (
-                                <div className="h-10 px-4 bg-amber-50 text-amber-600 border border-amber-200 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
-                                    <Clock className="w-4 h-4" strokeWidth={3} />
-                                    ĐÃ XÁC NHẬN CHỜ
+                                <div className="h-8 px-3 bg-amber-50 text-amber-600 border border-amber-200 rounded-lg font-bold text-[10px] uppercase tracking-wide flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5" strokeWidth={3} />
+                                    Đã chờ
                                 </div>
                             ) : sod.saleDecision.action === 'CANCEL_ORDER' ? (
-                                <div className="h-10 px-4 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
-                                    <X className="w-4 h-4" strokeWidth={3} />
-                                    ĐÃ CHỐT HỦY
+                                <div className="h-8 px-3 bg-rose-50 text-rose-600 border border-rose-200 rounded-lg font-bold text-[10px] uppercase tracking-wide flex items-center gap-1.5">
+                                    <X className="w-3.5 h-3.5" strokeWidth={3} />
+                                    Đã hủy
                                 </div>
                             ) : sod.saleDecision.action === 'REJECT_REPORT' ? (
-                                <div className="h-10 px-4 bg-slate-50 text-slate-500 border border-slate-200 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
-                                    <ArrowRightLeft className="w-4 h-4" strokeWidth={3} />
-                                    YÊU CẦU KIỂM LẠI
+                                <div className="h-8 px-3 bg-slate-50 text-slate-500 border border-slate-200 rounded-lg font-bold text-[10px] uppercase tracking-wide flex items-center gap-1.5">
+                                    <ArrowRightLeft className="w-3.5 h-3.5" strokeWidth={3} />
+                                    Kiểm lại
                                 </div>
                             ) : (
-                                <div className="h-10 px-4 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
-                                    <Clock className="w-4 h-4" />
+                                <div className="h-8 px-3 bg-gray-50 text-gray-600 border border-gray-200 rounded-lg font-bold text-[10px] uppercase tracking-wide flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5" />
                                     {sod.saleDecision.action}
                                 </div>
                             )}
                         </div>
                     ) : (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                             {/* 1. Nút Giao (Ship) */}
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleAccept(); }}
                                 disabled={!!isSubmitting}
-                                className="h-11 px-4 rounded-xl bg-[#00966d] text-white flex items-center gap-2 shadow-lg shadow-emerald-100 hover:bg-[#007a58] transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wider"
+                                className="h-8 px-3 rounded-lg bg-emerald-500 text-white flex items-center gap-1.5 hover:bg-emerald-600 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wide"
                                 title="Xác nhận giao"
                             >
-                                {isSubmitting === 'ACCEPT' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" strokeWidth={4} />}
+                                {isSubmitting === 'ACCEPT' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" strokeWidth={3} />}
                                 <span>Giao</span>
                             </button>
 
@@ -216,40 +216,28 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleWait(); }}
                                 disabled={!!isSubmitting}
-                                className="h-11 px-4 rounded-xl bg-amber-500 text-white flex items-center gap-2 shadow-lg shadow-amber-100 hover:bg-amber-600 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wider"
+                                className="h-8 px-3 rounded-lg bg-amber-500 text-white flex items-center gap-1.5 hover:bg-amber-600 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wide"
                                 title="Chờ hàng về"
                             >
-                                {isSubmitting === 'WAIT' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clock className="w-4 h-4" strokeWidth={3} />}
+                                {isSubmitting === 'WAIT' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Clock className="w-3.5 h-3.5" strokeWidth={3} />}
                                 <span>Chờ</span>
                             </button>
-
-                            {/* 3. Nút Hủy (Cancel) - [Hided by User Request]
-                            <button
-                                onClick={(e) => { e.stopPropagation(); handleCancel(); }}
-                                disabled={!!isSubmitting}
-                                className="h-11 px-4 rounded-xl bg-rose-600 text-white flex items-center gap-2 shadow-lg shadow-rose-100 hover:bg-rose-700 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wider"
-                                title="Hủy dòng hàng"
-                            >
-                                {isSubmitting === 'CANCEL' ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" strokeWidth={3} />}
-                                <span>Hủy</span>
-                            </button>
-                            */}
 
                             {/* 4. Nút Kiểm lại (Reject Report) */}
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleReject(); }}
                                 disabled={!!isSubmitting}
-                                className="h-11 px-4 rounded-xl bg-white border-2 border-slate-200 text-slate-500 flex items-center gap-2 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wider"
+                                className="h-8 px-3 rounded-lg bg-white border border-slate-200 text-slate-500 flex items-center gap-1.5 hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wide"
                                 title="Yêu cầu kiểm tra lại"
                             >
-                                {isSubmitting === 'REJECT' ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRightLeft className="w-4 h-4" strokeWidth={3} />}
+                                {isSubmitting === 'REJECT' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowRightLeft className="w-3.5 h-3.5" strokeWidth={3} />}
                                 <span>Kiểm lại</span>
                             </button>
                         </div>
                     )}
 
-                    {/* Chevron for Expand/Collapse (Keep but make it less prominent) */}
-                    <div className={`ml-4 p-2.5 rounded-xl transition-all ${isExpanded ? 'bg-indigo-50 text-indigo-400' : 'bg-gray-100 text-gray-400 rotate-180'}`}>
+                    {/* Chevron for Expand/Collapse */}
+                    <div className={`p-1 rounded-md transition-all ${isExpanded ? 'text-indigo-600 rotate-0' : 'text-gray-400 rotate-180'}`}>
                         <ChevronDown className="w-5 h-5" />
                     </div>
                 </div>
@@ -257,59 +245,59 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
 
             {/* Expanded Content - No more action buttons here */}
             {isExpanded && (
-                <div className="px-8 pb-8 border-t border-indigo-50">
-                    <div className="bg-indigo-50/50 rounded-[1.5rem] p-6 mt-4">
-                        <h4 className="text-xs font-black text-indigo-600 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <Package className="w-4 h-4" />
+                <div className="px-3 py-4 border-t border-gray-100 bg-gray-50/50 space-y-3">
+                    <div className="bg-white rounded-lg p-3 border border-gray-100">
+                        <h4 className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                            <Package className="w-3.5 h-3.5" />
                             Chi tiết báo cáo từ Kho
                         </h4>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {/* Số lượng đơn hàng (Nhu cầu gốc) */}
-                            <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-                                <span className="text-[11px] uppercase tracking-widest font-black text-gray-400 block mb-2">Số lượng đơn hàng (Gốc)</span>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-xl font-black text-gray-900">{N_ON}</span>
-                                    <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-lg border border-gray-200 uppercase">{unitOrder}</span>
-                                    <span className="text-gray-300 mx-1">/</span>
-                                    <span className="text-xl font-black text-gray-400">{N_WH}</span>
-                                    <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100 uppercase">{sod.unitWarehouseName || 'WH'}</span>
+                            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                <span className="text-[10px] uppercase tracking-wide font-semibold text-gray-500 block mb-1">Số lượng đơn hàng (Gốc)</span>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-lg font-bold text-gray-900">{N_ON}</span>
+                                    <span className="text-[9px] font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 uppercase">{unitOrder}</span>
+                                    <span className="text-gray-300 mx-0.5">/</span>
+                                    <span className="text-base font-semibold text-gray-500">{N_WH}</span>
+                                    <span className="text-[9px] font-semibold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 uppercase">{sod.unitWarehouseName || 'WH'}</span>
                                 </div>
                             </div>
 
                             {/* Số lượng đơn (Số lượng kho nhập) */}
-                            <div className="bg-indigo-100/50 rounded-2xl p-4 border border-indigo-200 shadow-sm group-hover:bg-indigo-100 transition-colors">
-                                <span className="text-[11px] uppercase tracking-widest font-black text-indigo-600 block mb-2">Số lượng đơn (Kho nhập thực tế)</span>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-xl font-black text-indigo-700">{requestedQtyON}</span>
-                                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-lg border border-indigo-200 uppercase">{unitOrder}</span>
-                                    <span className="text-indigo-400 mx-1">/</span>
-                                    <span className="text-xl font-black text-indigo-700">{requestedQtyWH}</span>
-                                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-lg border border-indigo-200 uppercase">{sod.unitWarehouseName || 'WH'}</span>
+                            <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                                <span className="text-[10px] uppercase tracking-wide font-semibold text-indigo-600 block mb-1">Số lượng thực tế Kho nhập</span>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-lg font-bold text-indigo-700">{requestedQtyON}</span>
+                                    <span className="text-[9px] font-semibold text-indigo-600 bg-indigo-100 px-1.5 py-0.5 rounded border border-indigo-200 uppercase">{unitOrder}</span>
+                                    <span className="text-indigo-300 mx-0.5">/</span>
+                                    <span className="text-base font-semibold text-indigo-500">{requestedQtyWH}</span>
+                                    <span className="text-[9px] font-semibold text-indigo-600 bg-indigo-100 px-1.5 py-0.5 rounded border border-indigo-200 uppercase">{sod.unitWarehouseName || 'WH'}</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Metadata */}
-                        <div className="flex items-center gap-6 mt-6 text-xs text-gray-500 font-bold border-t border-indigo-100 pt-4">
-                            <div className="flex items-center gap-1.5">
-                                <ArrowRightLeft className="w-3.5 h-3.5" />
-                                <span>Loại: <strong className="text-gray-700 underline decoration-indigo-200">{getDiscrepancyLabel()}</strong></span>
+                        <div className="flex items-center gap-4 mt-3 text-[10px] text-gray-500 font-medium border-t border-gray-100 pt-3">
+                            <div className="flex items-center gap-1">
+                                <ArrowRightLeft className="w-3 h-3" />
+                                <span>Loại: <strong className="text-gray-700">{getDiscrepancyLabel()}</strong></span>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                                <Package className="w-3.5 h-3.5" />
+                            <div className="flex items-center gap-1">
+                                <Package className="w-3 h-3" />
                                 <span>Bộ phận: <strong className="text-gray-700">{createdByDept}</strong></span>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5" />
+                            <div className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
                                 <span>{timestamp}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Hướng dẫn */}
-                    <div className="mt-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl text-[11px] text-amber-700 font-medium">
-                        <strong>💡 Hướng dẫn:</strong> Kho báo số liệu thực tế khác hệ thống. Click <strong>CHẤP NHẬN</strong> để giao theo số lượng Kho báo, hoặc nút <strong>X</strong> để hủy dòng hàng này.
+                    <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg text-[10px] text-amber-700 font-medium">
+                        <strong>💡</strong> Kho báo số liệu thực tế khác hệ thống. Click <strong>GIAO</strong> để xuất theo số Kho báo, hoặc <strong>KIỂM LẠI</strong> để yêu cầu kiểm tra.
                     </div>
                 </div>
             )}

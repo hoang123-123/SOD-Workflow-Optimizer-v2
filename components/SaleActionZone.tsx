@@ -152,13 +152,13 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
     };
 
     return (
-        <div className={`relative rounded-2xl p-6 border-2 transition-all flex flex-col ${canAct ? 'bg-white border-indigo-500 shadow-xl shadow-indigo-100/50 mt-4' : 'bg-gray-50 border-gray-200 mt-2'}`}>
+        <div className={`relative rounded-xl p-4 border transition-all flex flex-col ${canAct ? 'bg-gray-50 border-gray-300' : 'bg-gray-50 border-gray-200 mt-2'}`}>
             {/* NHÃN TRÊN VIỀN (FLOATING LABEL) */}
             {canAct && (
-                <div className="absolute -top-3.5 left-6 bg-white px-3 flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-                    <span className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.2em]">PHƯƠNG ÁN XỬ LÝ</span>
-                    <div className="ml-2">{renderBadge()}</div>
+                <div className="absolute -top-3 left-4 bg-gray-50 px-2 flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                    <span className="text-[10px] font-bold text-gray-700 uppercase tracking-wide">Phương án xử lý</span>
+                    <div className="ml-1">{renderBadge()}</div>
                 </div>
             )}
 
@@ -226,21 +226,21 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
                         {showOptionShip && (
                             <div
                                 onClick={() => setSaleOption('SHIP_PARTIAL')}
-                                className={`relative flex flex-col p-5 rounded-xl transition-all duration-300 group border-2 ${(saleOption === 'SHIP_PARTIAL' || saleOption === 'SHIP_AND_CLOSE')
-                                    ? 'border-indigo-500 bg-indigo-50 cursor-pointer shadow-md'
-                                    : 'border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/50 cursor-pointer'
+                                className={`relative flex flex-col p-4 rounded-lg transition-all duration-200 group border ${(saleOption === 'SHIP_PARTIAL' || saleOption === 'SHIP_AND_CLOSE')
+                                    ? 'border-gray-400 bg-white cursor-pointer shadow-sm'
+                                    : 'border-gray-200 bg-white hover:border-gray-300 cursor-pointer'
                                     }`}
                             >
                                 <div className="flex items-start">
-                                    <div className={`mt-0.5 flex items-center justify-center w-6 h-6 rounded-full border-2 transition-all duration-300 shrink-0 ${(saleOption === 'SHIP_PARTIAL' || saleOption === 'SHIP_AND_CLOSE') ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300 bg-white group-hover:border-indigo-400'
+                                    <div className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all duration-200 shrink-0 ${(saleOption === 'SHIP_PARTIAL' || saleOption === 'SHIP_AND_CLOSE') ? 'border-gray-600 bg-gray-600' : 'border-gray-300 bg-white group-hover:border-gray-400'
                                         }`}>
-                                        {(saleOption === 'SHIP_PARTIAL' || saleOption === 'SHIP_AND_CLOSE') ? <Check className="w-4 h-4 text-white" strokeWidth={4} /> : <Truck className="w-3.5 h-3.5 text-gray-400 group-hover:text-indigo-500" />}
+                                        {(saleOption === 'SHIP_PARTIAL' || saleOption === 'SHIP_AND_CLOSE') ? <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} /> : <Truck className="w-3 h-3 text-gray-400" />}
                                     </div>
-                                    <div className="ml-4 flex-1">
-                                        <span className={`block text-sm font-bold uppercase tracking-tight ${(saleOption === 'SHIP_PARTIAL' || saleOption === 'SHIP_AND_CLOSE') ? 'text-indigo-700' : 'text-gray-700 group-hover:text-gray-900'}`}>
+                                    <div className="ml-3 flex-1">
+                                        <span className="block text-sm font-bold text-gray-900">
                                             {content.SHIP.title}
                                         </span>
-                                        <span className={`block text-xs mt-1 leading-relaxed ${(saleOption === 'SHIP_PARTIAL' || saleOption === 'SHIP_AND_CLOSE') ? 'text-indigo-600' : 'text-gray-500'}`}>
+                                        <span className="block text-xs mt-0.5 text-gray-500 leading-relaxed">
                                             {content.SHIP.desc}
                                         </span>
                                     </div>
@@ -252,21 +252,21 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
                         {showOptionWait && (
                             <div
                                 onClick={() => setSaleOption('WAIT_ALL')}
-                                className={`relative flex items-start p-4 rounded-xl cursor-pointer transition-all duration-200 group border-2 ${saleOption === 'WAIT_ALL'
-                                    ? 'border-amber-500 bg-amber-50/40 shadow-sm'
-                                    : 'border-gray-100 bg-white hover:border-amber-300 hover:bg-amber-50/30 hover:shadow-sm'
+                                className={`relative flex items-start p-4 rounded-lg cursor-pointer transition-all duration-200 group border ${saleOption === 'WAIT_ALL'
+                                    ? 'border-gray-400 bg-white shadow-sm'
+                                    : 'border-gray-200 bg-white hover:border-gray-300'
                                     }`}
                             >
-                                <div className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all duration-200 shrink-0 ${saleOption === 'WAIT_ALL' ? 'border-amber-500 bg-amber-500' : 'border-gray-300 bg-white group-hover:border-amber-400'
+                                <div className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all duration-200 shrink-0 ${saleOption === 'WAIT_ALL' ? 'border-gray-600 bg-gray-600' : 'border-gray-300 bg-white group-hover:border-gray-400'
                                     }`}>
                                     {saleOption === 'WAIT_ALL' ? <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} /> : <Clock className="w-3 h-3 text-gray-400" />}
                                 </div>
 
-                                <div className="ml-3.5 flex-1">
-                                    <span className={`block text-sm font-bold ${saleOption === 'WAIT_ALL' ? 'text-amber-900' : 'text-slate-800'}`}>
+                                <div className="ml-3 flex-1">
+                                    <span className="block text-sm font-bold text-gray-900">
                                         {content.WAIT.title}
                                     </span>
-                                    <span className={`block text-xs mt-1 leading-relaxed ${saleOption === 'WAIT_ALL' ? 'text-amber-800' : 'text-gray-500'}`}>
+                                    <span className="block text-xs mt-0.5 text-gray-500 leading-relaxed">
                                         {content.WAIT.desc}
                                     </span>
                                 </div>
@@ -277,21 +277,21 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
                         {showOptionCancel && (
                             <div
                                 onClick={() => setSaleOption('CANCEL_ORDER')}
-                                className={`relative flex items-start p-4 rounded-xl cursor-pointer transition-all duration-200 group border-2 ${saleOption === 'CANCEL_ORDER'
-                                    ? 'border-red-600 bg-red-50/40 shadow-sm'
-                                    : 'border-gray-100 bg-white hover:border-red-200 hover:bg-red-50/30 hover:shadow-sm'
+                                className={`relative flex items-start p-4 rounded-lg cursor-pointer transition-all duration-200 group border ${saleOption === 'CANCEL_ORDER'
+                                    ? 'border-gray-400 bg-white shadow-sm'
+                                    : 'border-gray-200 bg-white hover:border-gray-300'
                                     }`}
                             >
-                                <div className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all duration-200 shrink-0 ${saleOption === 'CANCEL_ORDER' ? 'border-red-600 bg-red-600' : 'border-gray-300 bg-white group-hover:border-red-400'
+                                <div className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all duration-200 shrink-0 ${saleOption === 'CANCEL_ORDER' ? 'border-gray-600 bg-gray-600' : 'border-gray-300 bg-white group-hover:border-gray-400'
                                     }`}>
                                     {saleOption === 'CANCEL_ORDER' ? <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} /> : <XCircle className="w-3 h-3 text-gray-400" />}
                                 </div>
 
-                                <div className="ml-3.5 flex-1">
-                                    <span className={`flex items-center gap-2 text-sm font-bold ${saleOption === 'CANCEL_ORDER' ? 'text-red-900' : 'text-slate-800'}`}>
+                                <div className="ml-3 flex-1">
+                                    <span className="flex items-center gap-2 text-sm font-bold text-gray-900">
                                         {content.CANCEL.title}
                                     </span>
-                                    <span className={`block text-xs mt-1 leading-relaxed ${saleOption === 'CANCEL_ORDER' ? 'text-red-800' : 'text-gray-500'}`}>
+                                    <span className="block text-xs mt-0.5 text-gray-500 leading-relaxed">
                                         {content.CANCEL.desc}
                                     </span>
                                 </div>
@@ -305,10 +305,10 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
                         <button
                             onClick={handleSaleSubmit}
                             disabled={!saleOption || isSubmitting}
-                            className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-lg hover:-translate-y-0.5 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:transform-none ${saleOption ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-gray-100 text-gray-400'}`}
+                            className={`w-full py-3 rounded-lg font-bold text-sm uppercase tracking-wide transition-all flex items-center justify-center gap-2 active:scale-95 disabled:bg-gray-100 disabled:text-gray-400 disabled:shadow-none ${saleOption ? 'bg-slate-800 text-white hover:bg-slate-900' : 'bg-gray-100 text-gray-400'}`}
                         >
-                            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileCheck className="w-5 h-5" />}
-                            {isSubmitting ? 'ĐANG XỬ LÝ...' : 'Xác nhận phương án'}
+                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileCheck className="w-4 h-4" />}
+                            {isSubmitting ? 'Đang xử lý...' : 'Xác nhận phương án'}
                         </button>
                     )}
                 </div>

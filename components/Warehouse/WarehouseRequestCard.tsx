@@ -87,19 +87,19 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
             <div className="bg-white border-2 border-indigo-100 rounded-[1.5rem] p-8 shadow-sm">
                 <div className="flex items-start gap-6 mb-8">
                     <div className={`p-4 rounded-2xl shadow-sm shrink-0 border-2 ${isRejection
-                            ? 'bg-rose-50 border-rose-100 text-rose-500'
-                            : isSaleResponded
-                                ? 'bg-emerald-50 border-emerald-100 text-emerald-500'
-                                : 'bg-indigo-50 border-indigo-100 text-indigo-500'
+                        ? 'bg-rose-50 border-rose-100 text-rose-500'
+                        : isSaleResponded
+                            ? 'bg-emerald-50 border-emerald-100 text-emerald-500'
+                            : 'bg-indigo-50 border-indigo-100 text-indigo-500'
                         }`}>
                         {isRejection ? <XCircle className="w-6 h-6" /> : isSaleResponded ? <CheckCircle2 className="w-6 h-6" /> : <Hourglass className="w-6 h-6" />}
                     </div>
                     <div className="flex-1">
                         <h4 className={`text-xl font-black mb-1 uppercase tracking-tighter ${isRejection
-                                ? 'text-rose-800'
-                                : isSaleResponded
-                                    ? 'text-emerald-800'
-                                    : 'text-indigo-800'
+                            ? 'text-rose-800'
+                            : isSaleResponded
+                                ? 'text-emerald-800'
+                                : 'text-indigo-800'
                             }`}>
                             {isRejection ? 'Sale yêu cầu kiểm đếm lại' : isSaleResponded ? 'Sale đã xử lý báo cáo' : 'Đang chờ Sale phản hồi'}
                         </h4>
@@ -147,23 +147,25 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
     };
 
     return (
-        <div className={`bg-white border-2 rounded-[2rem] transition-all overflow-hidden shadow-sm hover:shadow-md mb-6 ${isSubmitted ? 'border-indigo-100' : 'border-amber-100 dark:border-amber-900/30'}`}>
+        <div className={`bg-white border rounded-xl transition-all overflow-hidden hover:border-amber-200 ${isSubmitted ? 'border-indigo-100' : 'border-amber-100'}`}>
             {/* Header: Basic Info - Click vào đây để mở/đóng */}
-            <div
+            <button
                 onClick={() => setIsDiscoveryExpanded(!isDiscoveryExpanded)}
-                className={`px-8 py-6 flex items-center justify-between border-b cursor-pointer ${isSubmitted ? 'border-indigo-50 bg-indigo-50/10' : 'border-amber-50 bg-amber-50/10'}`}
+                className={`w-full text-left px-3 py-2.5 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors group`}
             >
-                <div className="flex items-start gap-4 flex-1">
-                    <div className={`p-3 rounded-2xl border shadow-sm shrink-0 ${isSubmitted ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-                        <Scale className="w-6 h-6" />
+                <div className="flex items-start gap-3 flex-1">
+                    <div className={`p-2 rounded-lg transition-all ${isDiscoveryExpanded
+                        ? (isSubmitted ? 'bg-indigo-500 text-white' : 'bg-amber-500 text-white')
+                        : (isSubmitted ? 'bg-indigo-50 text-indigo-600' : 'bg-amber-50 text-amber-600')}`}>
+                        <Scale className="w-4 h-4" />
                     </div>
                     <div>
-                        <div className="font-extrabold text-gray-600 text-sm leading-tight truncate uppercase tracking-tight">{sod.detailName}</div>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] font-black bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-lg border border-indigo-200/50">{sod.product.sku}</span>
+                        <div className="font-semibold text-gray-900 text-sm leading-tight truncate">{sod.detailName}</div>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+                            <span className="font-semibold bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 text-[10px]">{sod.product.sku}</span>
                             {isSubmitted && (
-                                <span className="text-[10px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-tight bg-indigo-600 text-white border-indigo-700">
-                                    Đã gửi báo cáo
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase bg-indigo-600 text-white">
+                                    Đã gửi
                                 </span>
                             )}
                         </div>
@@ -171,11 +173,11 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                 </div>
                 <div className="flex items-center gap-3">
                     <StatusBadge sod={sod} />
-                    <div className={`p-2 rounded-xl transition-all ${isDiscoveryExpanded ? (isSubmitted ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600') : 'bg-gray-100 text-gray-400 rotate-180'}`}>
+                    <div className={`p-1 rounded-md transition-all duration-300 ${isDiscoveryExpanded ? 'text-indigo-600 rotate-0' : 'text-gray-400 rotate-180'}`}>
                         <ChevronDown className="w-5 h-5" />
                     </div>
                 </div>
-            </div>
+            </button>
 
             {/* Content: The Bento Discovery Box (Matching Mockup) */}
             {isDiscoveryExpanded && (

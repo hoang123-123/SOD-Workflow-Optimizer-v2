@@ -71,62 +71,62 @@ export const WarehouseUrgentCard: React.FC<WarehouseUrgentCardProps> = ({
     };
 
     return (
-        <div className={`bg-white border-2 ${getBorderColor()} rounded-[1.5rem] transition-all overflow-hidden shadow-sm hover:shadow-md mb-6 group`}>
-            <div className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className={`bg-white border ${getBorderColor()} rounded-xl transition-all overflow-hidden hover:border-amber-200`}>
+            <div className="px-3 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 {/* Left: Product Info */}
-                <div className="flex items-center gap-4 flex-1">
-                    <div className={`p-3 rounded-2xl ${getIconBgColor()} border shadow-sm shrink-0 flex items-center justify-center`}>
-                        {isUrgentAccepted ? <CheckCircle2 className="w-5 h-5" /> :
-                            isUrgentRejected ? <XCircle className="w-5 h-5" /> :
-                                <Zap className="w-5 h-5 fill-amber-200" />}
+                <div className="flex items-center gap-3 flex-1">
+                    <div className={`p-2 rounded-lg ${getIconBgColor()} shrink-0`}>
+                        {isUrgentAccepted ? <CheckCircle2 className="w-4 h-4" /> :
+                            isUrgentRejected ? <XCircle className="w-4 h-4" /> :
+                                <Zap className="w-4 h-4 fill-amber-200" />}
                     </div>
                     <div className="min-w-0">
-                        <div className="font-extrabold text-gray-900 text-base leading-tight truncate uppercase tracking-tight">
+                        <div className="font-semibold text-gray-900 text-sm leading-tight truncate">
                             {sod.detailName}
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
                             {isUrgentAccepted && (
-                                <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-lg border border-emerald-600 shadow-sm uppercase">Đã chấp nhận</span>
+                                <span className="text-[10px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded uppercase">Đã chấp nhận</span>
                             )}
                             {isUrgentRejected && (
-                                <span className="text-[10px] font-black bg-rose-500 text-white px-2 py-0.5 rounded-lg border border-rose-600 shadow-sm uppercase">Đã từ chối</span>
+                                <span className="text-[10px] font-bold bg-rose-500 text-white px-1.5 py-0.5 rounded uppercase">Đã từ chối</span>
                             )}
-                            <span className="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded-lg border border-gray-200 uppercase">{sod.product.sku}</span>
+                            <span className="font-semibold bg-gray-100 px-1.5 py-0.5 rounded text-gray-600 text-[10px]">{sod.product.sku}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Right: Qty & Actions */}
-                <div className="flex items-center gap-6 shrink-0 ml-auto md:ml-0">
+                <div className="flex items-center gap-4 shrink-0 ml-auto md:ml-0">
                     {/* Qty Info */}
                     <div className="flex flex-col items-end">
-                        <span className="text-[9px] uppercase tracking-widest font-black text-amber-600/60 mb-0.5">Số lượng đơn/kho</span>
+                        <span className="text-[9px] uppercase tracking-wide text-amber-600">Số lượng</span>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-xl font-black text-gray-900">{rs}</span>
-                            <span className="text-gray-300 mx-0.5 text-sm">/</span>
-                            <span className="text-base font-bold text-amber-600/60">{rs * (sod.conversionRate || 1)}</span>
+                            <span className="text-lg font-bold text-gray-900">{rs}</span>
+                            <span className="text-gray-300 mx-0.5">/</span>
+                            <span className="text-base font-semibold text-amber-500">{rs * (sod.conversionRate || 1)}</span>
                         </div>
                     </div>
 
                     {/* Action Buttons - Chỉ hiển thị khi PENDING */}
                     {isUrgentPending && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                             <button
                                 onClick={(e) => handleUrgentResponse('ACCEPTED', e)}
                                 disabled={isSubmitting}
-                                className="h-11 w-11 flex items-center justify-center bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl shadow-lg shadow-emerald-200 transition-all active:scale-95 disabled:bg-gray-300"
+                                className="h-8 w-8 flex items-center justify-center bg-emerald-500 text-white hover:bg-emerald-600 rounded-lg shadow-sm transition-all active:scale-95 disabled:bg-gray-300"
                                 title="Chấp nhận"
                             >
-                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-5 h-5" strokeWidth={4} />}
+                                {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-4 h-4" strokeWidth={3} />}
                             </button>
 
                             <button
                                 onClick={(e) => handleUrgentResponse('REJECTED', e)}
                                 disabled={isSubmitting}
-                                className="h-11 w-11 flex items-center justify-center border-2 border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded-xl transition-all active:scale-95 disabled:bg-gray-50 disabled:text-gray-300"
+                                className="h-8 w-8 flex items-center justify-center border border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded-lg transition-all active:scale-95 disabled:bg-gray-50"
                                 title="Từ chối"
                             >
-                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-5 h-5" strokeWidth={3} />}
+                                {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-4 h-4" strokeWidth={3} />}
                             </button>
                         </div>
                     )}

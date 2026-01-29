@@ -40,29 +40,29 @@ export const SaleShortageCard: React.FC<SaleShortageCardProps> = ({ sod, recordI
     );
 
     return (
-        <div className="bg-white border border-gray-200 rounded-2xl transition-all overflow-hidden shadow-sm hover:border-indigo-200 hover:shadow-md">
+        <div className="bg-white border border-gray-200 rounded-xl transition-all overflow-hidden hover:border-indigo-200">
             {/* --- HEADER TỔNG (CLICKABLE) --- */}
             <button
                 onClick={() => setIsDetailExpanded(!isDetailExpanded)}
-                className="w-full text-left p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-indigo-50/30 transition-colors group"
+                className="w-full text-left px-3 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-gray-50 transition-colors group"
             >
-                <div className="flex items-start gap-4 flex-1">
-                    <div className={`p-2.5 rounded-xl transition-all duration-300 ${isDetailExpanded ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-200' : 'bg-indigo-50 text-indigo-600 border border-indigo-100'}`}>
-                        <Box className="w-5 h-5" />
+                <div className="flex items-start gap-3 flex-1">
+                    <div className={`p-2 rounded-lg transition-all ${isDetailExpanded ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600'}`}>
+                        <Box className="w-4 h-4" />
                     </div>
                     <div>
-                        <div className="font-bold text-gray-900 text-base leading-tight group-hover:text-indigo-700 transition-colors">{sod.detailName}</div>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                            <span className="font-bold bg-gray-100 px-2 py-0.5 rounded-lg text-indigo-600 border border-gray-200">{sod.product.sku}</span>
-                            <span className="truncate max-w-[200px] md:max-w-none">{sod.product.name}</span>
+                        <div className="font-semibold text-gray-900 text-sm leading-tight">{sod.detailName}</div>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+                            <span className="font-semibold bg-gray-100 px-1.5 py-0.5 rounded text-indigo-600 text-[10px]">{sod.product.sku}</span>
+                            <span className="truncate max-w-[180px]">{sod.product.name}</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-6 shrink-0 ml-auto md:ml-0">
+                <div className="flex items-center gap-4 shrink-0 ml-auto md:ml-0">
                     <div className="flex flex-col items-end">
-                        <LabelText className="text-[9px] uppercase tracking-widest text-gray-400">Thiếu hụt</LabelText>
-                        <div className="text-xl font-black text-rose-500">{Math.max(0, rs - (sod.qtyAvailable || 0))}</div>
+                        <LabelText className="text-[9px] uppercase tracking-wide text-gray-400">Thiếu hụt</LabelText>
+                        <div className="text-lg font-bold text-rose-500">{Math.max(0, rs - (sod.qtyAvailable || 0))}</div>
                     </div>
                     <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
                     <div className="flex items-center gap-3">
@@ -76,32 +76,32 @@ export const SaleShortageCard: React.FC<SaleShortageCardProps> = ({ sod, recordI
 
             {/* --- NỘI DUNG CHI TIẾT --- */}
             {isDetailExpanded && (
-                <div className="border-t border-gray-100 bg-gray-50/50 p-6 space-y-8 animate-in slide-in-from-top-2 duration-300">
+                <div className="border-t border-gray-100 bg-gray-50/50 px-3 py-4 space-y-4">
                     {/* Information Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:border-indigo-200 transition-all">
-                            <LabelText className="block mb-2 text-gray-500">Cần giao (Đơn/Kho)</LabelText>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="p-3 bg-white rounded-lg border border-gray-100">
+                            <LabelText className="block mb-1 text-gray-500 text-[10px]">Cần giao (Đơn/Kho)</LabelText>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-xl font-black text-gray-900">{sod.qtyOrderRemainingON || 0}</span>
-                                <span className="text-gray-300 mx-1 px-1">/</span>
-                                <span className="text-lg font-bold text-gray-500">{sod.qtyOrderRemainingWH || 0}</span>
-                                <span className="text-[10px] text-gray-400 font-bold uppercase ml-2">{sod.unitWarehouseName || 'Cái'}</span>
+                                <span className="text-lg font-bold text-gray-900">{sod.qtyOrderRemainingON || 0}</span>
+                                <span className="text-gray-300 mx-0.5">/</span>
+                                <span className="text-base font-semibold text-gray-500">{sod.qtyOrderRemainingWH || 0}</span>
+                                <span className="text-[9px] text-gray-400 font-semibold uppercase ml-1">{sod.unitWarehouseName || 'Cái'}</span>
                             </div>
                         </div>
-                        <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:border-indigo-200 transition-all">
-                            <LabelText className="block mb-2 text-gray-500">Hệ thống có (Đơn/Kho)</LabelText>
+                        <div className="p-3 bg-white rounded-lg border border-gray-100">
+                            <LabelText className="block mb-1 text-gray-500 text-[10px]">Hệ thống có (Đơn/Kho)</LabelText>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-xl font-black text-indigo-600">{sod.qtyAvailable || 0}</span>
-                                <span className="text-indigo-200 mx-1 px-1">/</span>
-                                <span className="text-lg font-bold text-indigo-400">{(sod.qtyAvailable || 0) * (sod.conversionRate || 1)}</span>
-                                <span className="text-[10px] text-indigo-400/60 font-bold uppercase ml-2">{sod.unitWarehouseName || 'Cái'}</span>
+                                <span className="text-lg font-bold text-indigo-600">{sod.qtyAvailable || 0}</span>
+                                <span className="text-indigo-200 mx-0.5">/</span>
+                                <span className="text-base font-semibold text-indigo-400">{(sod.qtyAvailable || 0) * (sod.conversionRate || 1)}</span>
+                                <span className="text-[9px] text-indigo-400/60 font-semibold uppercase ml-1">{sod.unitWarehouseName || 'Cái'}</span>
                             </div>
                         </div>
-                        <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:border-indigo-200 transition-all">
-                            <LabelText className="block mb-2">Ngày giao dự kiến</LabelText>
-                            <div className="flex items-center gap-2 mt-1">
-                                <CalendarDays className="w-5 h-5 text-indigo-400" />
-                                <span className="font-bold text-gray-800">
+                        <div className="p-3 bg-white rounded-lg border border-gray-100">
+                            <LabelText className="block mb-1 text-[10px]">Ngày giao dự kiến</LabelText>
+                            <div className="flex items-center gap-1.5">
+                                <CalendarDays className="w-4 h-4 text-indigo-400" />
+                                <span className="font-semibold text-gray-800 text-sm">
                                     {sod.expectedDeliveryDate ? new Date(sod.expectedDeliveryDate).toLocaleDateString('vi-VN') : '---'}
                                 </span>
                             </div>

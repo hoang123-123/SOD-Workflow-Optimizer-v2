@@ -604,23 +604,21 @@ const App: React.FC = () => {
                 {/* Demo Mode Button - Trigger */}
                 <button
                     onClick={() => setShowDemoMode(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-purple-500 hover:bg-purple-600 text-white transition-all shadow-lg shadow-purple-500/20 active:scale-95"
+                    className="flex items-center justify-center gap-1.5 w-32 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 transition-all active:scale-95"
                 >
-                    <FlaskConical className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Demo Mode</span>
+                    <FlaskConical className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-wide">Demo</span>
                 </button>
                 {contextRecordId && saveStatus !== 'IDLE' && (
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all duration-300 animate-in fade-in slide-in-from-right-4 
-                        ${saveStatus === 'SAVING' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 shadow-indigo-500/10' : ''}
-                        ${saveStatus === 'SAVED' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-emerald-500/10' : ''}
-                        ${saveStatus === 'ERROR' ? 'bg-red-500/10 border-red-500/20 text-red-400 shadow-red-500/10' : ''}
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-300 
+                        ${saveStatus === 'SAVING' ? 'bg-indigo-50 text-indigo-600' : ''}
+                        ${saveStatus === 'SAVED' ? 'bg-emerald-50 text-emerald-600' : ''}
+                        ${saveStatus === 'ERROR' ? 'bg-red-50 text-red-600' : ''}
                     `}>
-                        {saveStatus === 'SAVING' && <RefreshCw className="w-4 h-4 animate-spin" />}
-                        {saveStatus === 'SAVED' && <Cloud className="w-4 h-4" />}
-                        {saveStatus === 'ERROR' && <AlertTriangle className="w-4 h-4" />}
-                        <span className="text-[10px] font-black uppercase tracking-widest leading-none">
-                            {saveStatus === 'SAVING' ? 'Lưu...' : (saveStatus === 'SAVED' ? 'Đã lưu' : 'Lỗi!')}
-                        </span>
+                        {saveStatus === 'SAVING' && <RefreshCw className="w-3 h-3 animate-spin" />}
+                        {saveStatus === 'SAVED' && <Cloud className="w-3 h-3" />}
+                        {saveStatus === 'ERROR' && <AlertTriangle className="w-3 h-3" />}
+                        <span>{saveStatus === 'SAVING' ? 'Lưu...' : (saveStatus === 'SAVED' ? 'Đã lưu' : 'Lỗi!')}</span>
                     </div>
                 )}
 
@@ -628,14 +626,14 @@ const App: React.FC = () => {
                     <button
                         onClick={() => primaryRole === UserRole.ADMIN && setIsRoleMenuOpen(!isRoleMenuOpen)}
                         disabled={primaryRole !== UserRole.ADMIN}
-                        className={`flex items-center gap-3 px-5 py-2 rounded-2xl border transition-all shadow-xl active:scale-95 group 
+                        className={`flex items-center justify-center gap-1.5 w-32 px-3 py-1.5 rounded-lg border transition-all active:scale-95 
                             ${primaryRole === UserRole.ADMIN
-                                ? 'border-slate-700 bg-slate-800 hover:bg-slate-700'
-                                : 'border-slate-800 bg-slate-900/50 opacity-60 cursor-not-allowed'}`}
+                                ? 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700'
+                                : 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed text-slate-500'}`}
                     >
-                        {React.createElement(currentIcon, { className: `w-4 h-4 group-hover:scale-110 transition-all ${primaryRole === UserRole.ADMIN ? 'text-indigo-400' : 'text-slate-500'}` })}
-                        <span className="text-[10px] font-black text-slate-200 uppercase tracking-widest truncate max-w-[150px]">{displayRoleName}</span>
-                        {primaryRole === UserRole.ADMIN && <ChevronDown className="w-4 h-4 text-slate-500 group-hover:translate-y-0.5 transition-transform" />}
+                        {React.createElement(currentIcon, { className: `w-3.5 h-3.5 ${primaryRole === UserRole.ADMIN ? 'text-indigo-500' : 'text-slate-400'}` })}
+                        <span className="text-[10px] font-bold uppercase tracking-wide truncate">{displayRoleName}</span>
+                        {primaryRole === UserRole.ADMIN && <ChevronDown className="w-3 h-3 text-slate-400" />}
                     </button>
 
                     {isRoleMenuOpen && (
@@ -668,27 +666,27 @@ const App: React.FC = () => {
             {/* WorkflowGuide removed - replaced by DemoModePanel */}
 
             {/* HEADER */}
-            <header className="bg-white/90 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-40 px-6 py-4 shadow-sm">
-                <div className="max-w-[1500px] mx-auto flex flex-col lg:flex-row items-center gap-6 justify-between">
+            <header className="bg-white/95 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40 px-4 py-2.5">
+                <div className="max-w-[1500px] mx-auto flex flex-col lg:flex-row items-center gap-2 justify-between">
 
-                    <div className="flex items-center gap-3 group">
-                        <div className="p-3 bg-indigo-500 rounded-2xl shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-all duration-500">
-                            <LayoutGrid className="w-7 h-7 text-white" />
+                    <div className="flex items-center gap-2.5">
+                        <div className="p-2 bg-slate-800 rounded-xl">
+                            <LayoutGrid className="w-5 h-5 text-indigo-400" />
                         </div>
                         <div className="hidden sm:block">
-                            <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tighter leading-none">Workflow</h1>
-                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mt-1">Optimizer v2.0</p>
+                            <h1 className="text-base font-bold text-gray-900 uppercase tracking-tight leading-none">Workflow</h1>
+                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Optimizer v2.0</p>
                         </div>
                     </div>
 
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full lg:max-w-3xl">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2 w-full lg:max-w-3xl">
                         {/* Customer */}
                         <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                                <Building2 className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 transition-colors" />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                <Building2 className="w-4 h-4 text-gray-400" />
                             </div>
                             <select
-                                className="appearance-none block w-full h-12 pl-12 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer shadow-sm"
+                                className="appearance-none block w-full h-9 pl-10 pr-8 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all cursor-pointer"
                                 value={selectedCustomer?.id || ''}
                                 onChange={(e) => handleCustomerSwitch(e.target.value)}
                                 disabled={primaryRole !== UserRole.ADMIN}
@@ -713,12 +711,12 @@ const App: React.FC = () => {
                         {/* Order Search */}
                         <div className="relative group" ref={orderDropdownRef}>
                             <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                                    <Package className="h-4 w-4 text-gray-400 group-hover:text-indigo-600 transition-colors" />
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                    <Package className="h-4 w-4 text-gray-400" />
                                 </div>
                                 <input
                                     type="text"
-                                    className="block w-full h-12 pl-12 pr-12 text-[11px] font-bold uppercase tracking-widest text-gray-900 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-gray-400 shadow-sm"
+                                    className="block w-full h-9 pl-10 pr-10 text-xs font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all placeholder-gray-400"
                                     placeholder={selectedCustomer ? "TÌM MÃ ĐƠN HÀNG..." : "..."}
                                     value={orderSearch}
                                     onChange={(e) => {
@@ -781,82 +779,69 @@ const App: React.FC = () => {
                     <div className="animate-in fade-in duration-500">
                         <section>
                             {/* TOOLBAR */}
-                            <div className="flex flex-col xl:flex-row gap-6 justify-between items-start xl:items-center mb-10 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                                <div className="flex items-center gap-6">
-                                    {showRestoredBadge && (
-                                        <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200 uppercase tracking-widest animate-in fade-in duration-500 shadow-sm">
-                                            <RefreshCw className="w-3.5 h-3.5" />
-                                            Dữ liệu đã khôi phục
-                                        </div>
-                                    )}
+                            <div className="flex flex-col sm:flex-row gap-3 justify-end items-stretch mb-4">
+                                {showRestoredBadge && (
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 uppercase tracking-widest">
+                                        <RefreshCw className="w-3 h-3" />
+                                        Dữ liệu đã khôi phục
+                                    </div>
+                                )}
+                                <div className="relative w-48 focus-within:w-72 transition-all duration-300 group">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                        <Search className="h-4 w-4 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        className="block w-full h-9 pl-9 pr-3 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 focus:ring-1 focus:ring-gray-200 focus:border-gray-300 transition-all placeholder-gray-400"
+                                        placeholder="Tìm kiếm SKU, sản phẩm..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
-                                    <div className="relative flex-1 sm:w-80 group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                                            <Search className="h-4 w-4 text-gray-400 group-hover:text-indigo-600 transition-colors" />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            className="block w-full h-11 pl-11 pr-4 bg-white border border-gray-200 rounded-xl text-[11px] font-bold uppercase tracking-widest text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-gray-400 shadow-sm"
-                                            placeholder="TÌM KIẾM SKU, SẢN PHẨM..."
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="relative sm:w-64 group">
-                                        <select
-                                            className="appearance-none block w-full h-11 pl-4 pr-10 bg-white border border-gray-200 rounded-xl text-[11px] font-bold uppercase tracking-widest text-gray-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer shadow-sm"
-                                            value={statusFilter}
-                                            onChange={(e) => setStatusFilter(e.target.value)}
-                                        >
-                                            <option value="ALL">TẤT CẢ TRẠNG THÁI</option>
-                                            <option value={SODStatus.SHORTAGE_PENDING_SALE}>CẦN SALE XỪ LÝ</option>
-                                            <option value={SODStatus.SHORTAGE_PENDING_SOURCE}>CẦN SOURCE XỪ LÝ</option>
-                                            <option value={SODStatus.RESOLVED}>ĐÃ HOÀN TẤT</option>
-                                            <option value={SODStatus.SUFFICIENT}>ĐỦ TỒN KHO</option>
-                                        </select>
-                                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                            <ChevronDown className="h-4 w-4 text-gray-400" />
-                                        </div>
+                                <div className="relative sm:w-48 group">
+                                    <select
+                                        className="appearance-none block w-full h-9 pl-3 pr-8 bg-white border border-gray-200 rounded-lg text-xs text-gray-700 focus:ring-1 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all cursor-pointer"
+                                        value={statusFilter}
+                                        onChange={(e) => setStatusFilter(e.target.value)}
+                                    >
+                                        <option value="ALL">Tất cả trạng thái</option>
+                                        <option value={SODStatus.SHORTAGE_PENDING_SALE}>Cần Sale xử lý</option>
+                                        <option value={SODStatus.SHORTAGE_PENDING_SOURCE}>Cần Source xử lý</option>
+                                        <option value={SODStatus.RESOLVED}>Đã hoàn tất</option>
+                                        <option value={SODStatus.SUFFICIENT}>Đủ tồn kho</option>
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+                                        <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-12">
+                            <div className="space-y-6">
                                 {/* [NEW] LIST 0: REQUEST SAI LỆCH (DÀNH CHO CẢ SALE & KHO) */}
                                 {(currentRole === UserRole.SALE || currentRole === UserRole.WAREHOUSE) && processedDiscrepancySods.length > 0 && (
-                                    <div className="group/list border-2 rounded-[2rem] transition-all duration-500 overflow-hidden bg-white border-indigo-100 shadow-xl shadow-indigo-500/5">
+                                    <div className="group/list border rounded-xl transition-all overflow-hidden bg-white border-indigo-100 shadow-sm">
                                         <button
-                                            className="flex items-center justify-between w-full p-8 transition-all active:scale-[0.99] bg-indigo-50/30"
+                                            className="flex items-center justify-between w-full px-4 py-3 transition-all active:scale-[0.99] bg-indigo-50/30"
                                             onClick={() => setIsShortageExpanded(!isShortageExpanded)}
                                         >
-                                            <div className="flex items-center gap-6">
-                                                <div className="p-4 rounded-2xl shadow-lg transition-all duration-500 bg-indigo-500 text-white scale-110 rotate-0">
-                                                    <AlertTriangle className="w-7 h-7" />
-                                                </div>
-                                                <div className="text-left">
-                                                    <div className="flex items-start gap-1">
-                                                        <span className="block font-black uppercase tracking-tighter text-2xl leading-none text-gray-900">
-                                                            {currentRole === UserRole.SALE ? 'Request từ Kho' : 'Báo cáo sai lệch'}
-                                                        </span>
-                                                        <div className="px-2 py-0.5 rounded-full font-black text-[10px] shadow-sm transform -translate-y-2 transition-all duration-500 bg-indigo-500 text-white">
-                                                            {processedDiscrepancySods.length}
-                                                        </div>
-                                                    </div>
-                                                    <span className="text-[11px] font-bold uppercase tracking-widest text-indigo-600/70 mt-1.5 block">
-                                                        {currentRole === UserRole.SALE ? 'Kho đã kiểm kê thấy sai lệch, cần xử lý phương án' : 'Yêu cầu kiểm tra số liệu tồn kho thực tế'}
+                                            <div className="text-left">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-bold uppercase tracking-tight text-base text-gray-900">
+                                                        {currentRole === UserRole.SALE ? 'Request từ Kho' : 'Báo cáo sai lệch'}
                                                     </span>
+                                                    <div className="px-1.5 py-0.5 rounded-full font-bold text-[10px] bg-indigo-500 text-white">
+                                                        {processedDiscrepancySods.length}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="p-2.5 rounded-xl transition-all duration-500 bg-indigo-100 text-indigo-600 rotate-0">
-                                                <ChevronDown className="w-6 h-6" />
+                                                <span className="text-[10px] font-medium text-gray-500 block">
+                                                    {currentRole === UserRole.SALE ? 'Kho đã kiểm kê thấy sai lệch, cần xử lý phương án' : 'Yêu cầu kiểm tra số liệu tồn kho thực tế'}
+                                                </span>
                                             </div>
                                         </button>
 
-                                        <div className="p-8 pt-0 space-y-8 animate-in slide-in-from-top-4 fade-in duration-500">
-                                            <div className="grid grid-cols-1 gap-6">
+                                        <div className="px-4 pb-4 space-y-3">
+                                            <div className="grid grid-cols-1 gap-3">
                                                 {processedDiscrepancySods.map(sod => (
                                                     <SODCard
                                                         key={sod.id}
@@ -879,38 +864,31 @@ const App: React.FC = () => {
 
                                 {/* LIST 1: SHORTAGE ITEMS (MAIN) - HIDDEN FOR WAREHOUSE */}
                                 {((currentRole !== UserRole.WAREHOUSE) || (currentRole === UserRole.WAREHOUSE && processedShortageSods.length > 0)) && processedShortageSods.length > 0 && (
-                                    <div className={`group/list border-2 rounded-[2rem] transition-all duration-500 overflow-hidden ${isShortageExpanded ? 'bg-white border-indigo-100 shadow-xl shadow-indigo-500/5' : 'bg-gray-50/50 border-gray-200'}`}>
+                                    <div className={`group/list border rounded-xl transition-all overflow-hidden ${isShortageExpanded ? 'bg-white border-indigo-100 shadow-sm' : 'bg-gray-50/50 border-gray-200'}`}>
                                         <button
-                                            className={`flex items-center justify-between w-full p-8 transition-all active:scale-[0.99] ${isShortageExpanded ? 'bg-indigo-50/30' : 'bg-transparent hover:bg-gray-100/50'}`}
+                                            className={`flex items-center justify-between w-full px-4 py-3 transition-all active:scale-[0.99] ${isShortageExpanded ? 'bg-indigo-50/30' : 'bg-transparent hover:bg-gray-100/50'}`}
                                             onClick={() => setIsShortageExpanded(!isShortageExpanded)}
                                         >
-                                            <div className="flex items-center gap-6">
-                                                <div className={`p-4 rounded-2xl shadow-lg transition-all duration-500 ${isShortageExpanded ? 'bg-indigo-500 text-white scale-110 rotate-0' : 'bg-gray-200 text-gray-500 -rotate-12 group-hover/list:rotate-0'}`}>
-                                                    <AlertTriangle className="w-7 h-7" />
-                                                </div>
-                                                <div className="text-left">
-                                                    <div className="flex items-start gap-1">
-                                                        <span className={`block font-black uppercase tracking-tighter text-2xl leading-none ${isShortageExpanded ? 'text-gray-900' : 'text-gray-500'}`}>
-                                                            {currentRole === UserRole.WAREHOUSE ? 'Request giao gấp' : 'Danh sách thiếu hàng'}
-                                                        </span>
-                                                        <div className={`px-2 py-0.5 rounded-full font-black text-[10px] shadow-sm transform -translate-y-2 transition-all duration-500 ${isShortageExpanded ? 'bg-indigo-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
-                                                            {processedShortageSods.length}
-                                                        </div>
-                                                    </div>
-                                                    <span className="text-[11px] font-bold uppercase tracking-widest text-indigo-600/70 mt-1.5 block">
-                                                        {currentRole === UserRole.WAREHOUSE ? 'Các đơn hàng tương lai có khả năng giao sớm' : 'Các dòng hàng đang bị thiếu hụt cần xử lý phương án cung ứng'}
+                                            <div className="text-left">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`font-bold uppercase tracking-tight text-base ${isShortageExpanded ? 'text-gray-900' : 'text-gray-500'}`}>
+                                                        {currentRole === UserRole.WAREHOUSE ? 'Request giao gấp' : 'Danh sách thiếu hàng'}
                                                     </span>
+                                                    <div className={`px-1.5 py-0.5 rounded-full font-bold text-[10px] ${isShortageExpanded ? 'bg-indigo-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                                                        {processedShortageSods.length}
+                                                    </div>
                                                 </div>
+                                                <span className="text-[10px] font-medium text-gray-500 block">
+                                                    {currentRole === UserRole.WAREHOUSE ? 'Các đơn hàng tương lai có khả năng giao sớm' : 'Các dòng hàng đang bị thiếu hụt cần xử lý phương án cung ứng'}
+                                                </span>
                                             </div>
-                                            <div className={`p-2.5 rounded-xl transition-all duration-500 ${isShortageExpanded ? 'bg-indigo-100 text-indigo-600 rotate-0' : 'bg-gray-200 text-gray-500 rotate-180'}`}>
-                                                <ChevronDown className="w-6 h-6" />
-                                            </div>
+
                                         </button>
 
                                         {isShortageExpanded && (
-                                            <div className="p-8 pt-0 space-y-8 animate-in slide-in-from-top-4 fade-in duration-500">
+                                            <div className="px-4 pb-4 space-y-3">
                                                 {processedShortageSods.length > 0 ? (
-                                                    <div className="grid grid-cols-1 gap-6">
+                                                    <div className="grid grid-cols-1 gap-3">
                                                         {processedShortageSods.map(sod => (
                                                             <SODCard
                                                                 key={sod.id}
@@ -929,9 +907,9 @@ const App: React.FC = () => {
                                                     </div>
                                                 ) : (
                                                     !isLoading && (
-                                                        <div className="py-24 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50/30">
-                                                            <Package className="w-20 h-20 text-gray-200 mx-auto mb-6" />
-                                                            <p className="text-xs font-black uppercase tracking-widest text-gray-400">Không tìm thấy dòng hàng thiếu hụt.</p>
+                                                        <div className="py-12 text-center border border-dashed border-gray-200 rounded-lg bg-gray-50/30">
+                                                            <Package className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                                                            <p className="text-xs font-medium text-gray-400">Không tìm thấy dòng hàng thiếu hụt.</p>
                                                         </div>
                                                     )
                                                 )}
@@ -942,36 +920,28 @@ const App: React.FC = () => {
 
                                 {/* LIST 2: SUFFICIENT ITEMS */}
                                 {(currentRole === UserRole.WAREHOUSE || currentRole === UserRole.ADMIN || currentRole === UserRole.SALE) && processedSufficientSods.length > 0 && (
-                                    <div className={`group/list border-2 rounded-[2rem] transition-all duration-500 overflow-hidden ${isSufficientExpanded ? 'bg-white border-emerald-100 shadow-xl shadow-emerald-500/5' : 'bg-gray-50/50 border-gray-200'}`}>
+                                    <div className={`group/list border rounded-xl transition-all overflow-hidden ${isSufficientExpanded ? 'bg-white border-emerald-100 shadow-sm' : 'bg-gray-50/50 border-gray-200'}`}>
                                         <button
-                                            className={`flex items-center justify-between w-full p-8 transition-all active:scale-[0.99] ${isSufficientExpanded ? 'bg-emerald-50/30' : 'bg-transparent hover:bg-gray-100/50'}`}
+                                            className={`flex items-center justify-between w-full px-4 py-3 transition-all active:scale-[0.99] ${isSufficientExpanded ? 'bg-emerald-50/30' : 'bg-transparent hover:bg-gray-100/50'}`}
                                             onClick={() => setIsSufficientExpanded(!isSufficientExpanded)}
                                         >
-                                            <div className="flex items-center gap-6">
-                                                <div className={`p-4 rounded-2xl shadow-lg transition-all duration-500 ${isSufficientExpanded ? 'bg-emerald-500 text-white scale-110 rotate-0' : 'bg-gray-200 text-gray-500 -rotate-12 group-hover/list:rotate-0'}`}>
-                                                    <PackageCheck className="w-7 h-7" />
-                                                </div>
-                                                <div className="text-left">
-                                                    <div className="flex items-start gap-1">
-                                                        <span className={`block font-black uppercase tracking-tighter text-2xl leading-none ${isSufficientExpanded ? 'text-gray-900' : 'text-gray-500'}`}>
-                                                            {currentRole === UserRole.SALE ? 'Đơn gấp khả thi' : (currentRole === UserRole.WAREHOUSE ? (isRequestCreator ? 'Báo cáo sai lệch' : 'Request xuất kho') : 'Items Approved')}
-                                                        </span>
-                                                        <div className={`px-2 py-0.5 rounded-full font-black text-[10px] shadow-sm transform -translate-y-2 transition-all duration-500 ${isSufficientExpanded ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
-                                                            {processedSufficientSods.length}
-                                                        </div>
-                                                    </div>
-                                                    <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-600/70 mt-1.5 block">
-                                                        {currentRole === UserRole.SALE ? 'Các đơn hàng tương lai có khả năng giao sớm' : (currentRole === UserRole.WAREHOUSE ? (isRequestCreator ? 'Kho tạo yêu cầu kiểm tra số liệu tồn kho' : 'Xử lý xuất kho, đơn gấp và báo cáo sai lệch') : 'Các dòng hàng đủ tiêu chuẩn (Sufficient)')}
+                                            <div className="text-left">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`font-bold uppercase tracking-tight text-base ${isSufficientExpanded ? 'text-gray-900' : 'text-gray-500'}`}>
+                                                        {currentRole === UserRole.SALE ? 'Đơn gấp khả thi' : (currentRole === UserRole.WAREHOUSE ? (isRequestCreator ? 'Báo cáo sai lệch' : 'Request xuất kho') : 'Items Approved')}
                                                     </span>
+                                                    <div className={`px-1.5 py-0.5 rounded-full font-bold text-[10px] ${isSufficientExpanded ? 'bg-emerald-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                                                        {processedSufficientSods.length}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className={`p-2.5 rounded-xl transition-all duration-500 ${isSufficientExpanded ? 'bg-emerald-100 text-emerald-600 rotate-0' : 'bg-gray-200 text-gray-500 rotate-180'}`}>
-                                                <ChevronDown className="w-6 h-6" />
+                                                <span className="text-[10px] font-medium text-gray-500 block">
+                                                    {currentRole === UserRole.SALE ? 'Các đơn hàng tương lai có khả năng giao sớm' : (currentRole === UserRole.WAREHOUSE ? (isRequestCreator ? 'Kho tạo yêu cầu kiểm tra số liệu tồn kho' : 'Xử lý xuất kho, đơn gấp và báo cáo sai lệch') : 'Các dòng hàng đủ tiêu chuẩn (Sufficient)')}
+                                                </span>
                                             </div>
                                         </button>
 
                                         {isSufficientExpanded && (
-                                            <div className="p-8 pt-0 space-y-8 animate-in slide-in-from-top-4 fade-in duration-500">
+                                            <div className="px-4 pb-4 space-y-3">
                                                 {processedSufficientSods.map(sod => (
                                                     <SODCard
                                                         key={sod.id}
