@@ -384,7 +384,12 @@ export const SODCard: React.FC<SODCardProps> = ({ sod, currentRole, onUpdate, on
                         {sod.saleDecision && (
                             <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-gray-600">
                                 <UserCircle2 className="w-3.5 h-3.5 text-gray-400" />
-                                <span className="font-medium">Sale: {sod.saleDecision.action === 'SHIP_PARTIAL' ? 'Giao hàng' : (sod.saleDecision.action === 'WAIT_ALL' ? 'Chờ hàng' : 'Hủy đơn')}</span>
+                                <span className="font-medium">Sale: {
+                                    (sod.saleDecision.action === 'SHIP_PARTIAL' || sod.saleDecision.action === 'SHIP_AND_CLOSE') ? 'Giao hàng' :
+                                        (sod.saleDecision.action === 'WAIT_ALL') ? 'Chờ hàng' :
+                                            (sod.saleDecision.action === 'CANCEL_ORDER') ? 'Hủy đơn' :
+                                                'Từ chối báo cáo'
+                                }</span>
                             </div>
                         )}
                         {isUrgentPending && (

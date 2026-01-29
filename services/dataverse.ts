@@ -72,7 +72,7 @@ const fetchFromDataverse = async (path: string, onProgress?: (items: any[]) => v
         const token = await getAccessToken();
         // Khởi tạo URL ban đầu
         let url = `${DATAVERSE_CONFIG.ORG_URL}/api/data/v9.2/${path}`;
-
+        console.log("URL", url);
         const allRecords: any[] = [];
 
         // Vòng lặp lấy dữ liệu nếu có phân trang
@@ -106,6 +106,7 @@ const fetchFromDataverse = async (path: string, onProgress?: (items: any[]) => v
             url = data['@odata.nextLink'] || null;
         }
 
+        console.log("Data SOD fetched successfully", allRecords);
         return { value: allRecords };
     } catch (error: any) {
         // Bắt lỗi 'Failed to fetch' (thường là CORS hoặc Network)
@@ -177,6 +178,8 @@ export const fetchOrdersByCustomer = async (customerId: string): Promise<SalesOr
 
     const data = await fetchFromDataverse(query);
     const ordersRaw = data.value;
+
+    console.log(`[Dataverse] Orders found for customer ${cleanId}:`, ordersRaw);
 
     // Fix: Vì Rollup field chậm, ta sẽ gọi song song các request $count=true vào bảng chi tiết
     // để lấy số lượng thực tế (Real-time).

@@ -18,7 +18,7 @@ interface SaleActionZoneProps {
 
 export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, recordId, onAction, renderBadge, customerIndustryType, isDue, isSufficient }) => {
     // [UPDATED] Thêm SHIP_AND_CLOSE vào type
-    const [saleOption, setSaleOption] = useState<'SHIP_PARTIAL' | 'SHIP_AND_CLOSE' | 'WAIT_ALL' | 'CANCEL_ORDER' | 'SALE_URGENT' | null>(
+    const [saleOption, setSaleOption] = useState<'SHIP_PARTIAL' | 'SHIP_AND_CLOSE' | 'WAIT_ALL' | 'CANCEL_ORDER' | 'SALE_URGENT' | 'REJECT_REPORT' | null>(
         sod.saleDecision?.action || (sod.urgentRequest?.status === 'PENDING' ? 'SALE_URGENT' : null)
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,7 +46,7 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
     const unitWarehouse = sod.unitWarehouseName || 'SP';
 
     // [NEW] Kiểm tra xem khách hàng có phải là Nhà máy (Factory) không
-    const isFactory = customerIndustryType === INDUSTRY_FACTORY;
+    const isFactory = Number(customerIndustryType) === INDUSTRY_FACTORY;
 
     // [RULE CHANGE] Các option chọn (Ship/Wait/Cancel) CHỈ xuất hiện nếu:
     // - Đơn ĐÃ ĐẾN HẠN (isDue)
@@ -55,7 +55,7 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
     const showOptionWait = isDue && !isSufficient && sod.isNotificationSent === true;
     const showOptionCancel = isDue && !isSufficient; // [FIX] Cả Factory và không Factory đều có option Hủy
 
-    const renderDecisionText = (action: 'SHIP_PARTIAL' | 'SHIP_AND_CLOSE' | 'WAIT_ALL' | 'CANCEL_ORDER') => {
+    const renderDecisionText = (action: 'SHIP_PARTIAL' | 'SHIP_AND_CLOSE' | 'WAIT_ALL' | 'CANCEL_ORDER' | 'REJECT_REPORT') => {
         if (action === 'SHIP_PARTIAL') {
             // Factory: Chỉ giao, không chốt
             return `Đã xác nhận giao ${sod.saleDecision?.quantity || autoShipQty} ${unitOrder} (Đợt ${currentK})`;
@@ -65,6 +65,7 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
             return `Đã xác nhận giao ${sod.saleDecision?.quantity || autoShipQty} ${unitOrder} & Chốt dòng`;
         }
         if (action === 'CANCEL_ORDER') return `Đã Chốt đơn (Dừng giao)`;
+        if (action === 'REJECT_REPORT') return `Đã từ chối báo cáo sai lệch`;
         return `Đã chuyển trạng thái Chờ hàng`;
     }
 
@@ -122,7 +123,7 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
             let ruleId = '';
             let params = {};
 
-            if (saleOption === 'SHIP_PARTIAL') {
+            if (saleOption === 'SHIP_PARTIAL' || saleOption === 'SHIP_AND_CLOSE') {
                 ruleId = `${rulePrefix}1`; // A1 hoặc B1
                 params = { quantity: autoShipQty, isFactory: isFactory }; // [NEW] Truyền isFactory
             } else if (saleOption === 'WAIT_ALL') {
@@ -130,6 +131,8 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
             } else if (saleOption === 'CANCEL_ORDER') {
                 ruleId = `${rulePrefix}3`; // A3 hoặc B3
                 params = { quantity: rs }; // Hủy phần còn lại
+            } else if (saleOption === 'REJECT_REPORT') {
+                ruleId = `${rulePrefix}4`; // A4 hoặc B4
             } else if (saleOption === 'SALE_URGENT') {
                 ruleId = 'SALE_URGENT';
             }
@@ -199,8 +202,8 @@ export const SaleActionZone: React.FC<SaleActionZoneProps> = ({ sod, canAct, rec
             {!canAct && sod.saleDecision && (
                 <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-sm">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className={`p-2 rounded-lg ${sod.saleDecision.action === 'SHIP_PARTIAL' ? 'bg-indigo-100 text-indigo-600' : (sod.saleDecision.action === 'CANCEL_ORDER' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600')}`}>
-                            {sod.saleDecision.action === 'SHIP_PARTIAL' ? <Check className="w-4 h-4" /> : (sod.saleDecision.action === 'CANCEL_ORDER' ? <Ban className="w-4 h-4" /> : <Forward className="w-4 h-4" />)}
+                        <div className={`p-2 rounded-lg ${(sod.saleDecision.action === 'SHIP_PARTIAL' || sod.saleDecision.action === 'SHIP_AND_CLOSE') ? 'bg-indigo-100 text-indigo-600' : (sod.saleDecision.action === 'CANCEL_ORDER' || sod.saleDecision.action === 'REJECT_REPORT') ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
+                            {(sod.saleDecision.action === 'SHIP_PARTIAL' || sod.saleDecision.action === 'SHIP_AND_CLOSE') ? <Check className="w-4 h-4" /> : (sod.saleDecision.action === 'CANCEL_ORDER' || sod.saleDecision.action === 'REJECT_REPORT') ? <Ban className="w-4 h-4" /> : <Forward className="w-4 h-4" />}
                         </div>
                         <span className="font-bold text-gray-900 uppercase tracking-tight">
                             {renderDecisionText(sod.saleDecision.action)}

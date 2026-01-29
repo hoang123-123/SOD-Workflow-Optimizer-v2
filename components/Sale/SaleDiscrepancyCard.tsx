@@ -50,7 +50,7 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
     const timestamp = wv.timestamp ? new Date(wv.timestamp).toLocaleString('vi-VN') : '';
 
     const unitOrder = sod.unitOrderName || 'SP';
-    const isFactory = customerIndustryType === INDUSTRY_FACTORY;
+    const isFactory = Number(customerIndustryType) === INDUSTRY_FACTORY;
 
     // Xác định loại sai lệch
     const getDiscrepancyLabel = () => {
@@ -81,7 +81,48 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
         }
     };
 
-    // --- HANDLER: TỪ CHỐI (HỦY) ---
+    // --- HANDLER: CHỜ HÀNG (WAIT) ---
+    const handleWait = async () => {
+        setIsSubmitting('WAIT');
+        try {
+            const rulePrefix = (sod.deliveryCount || 0) === 0 ? 'A' : 'B';
+            const ruleId = `${rulePrefix}2`; // A2 hoặc B2
+
+            const updatedSOD = await executeBusinessRule(ruleId, sod, recordId, {});
+
+            onUpdate(updatedSOD);
+            if (onSaveState) await onSaveState(updatedSOD);
+        } catch (error) {
+            console.error("Wait Discrepancy Error:", error);
+            alert("Lỗi khi xác nhận chờ hàng.");
+        } finally {
+            setIsSubmitting(null);
+        }
+    };
+
+    // --- HANDLER: HỦY DÒNG (CANCEL) ---
+    const handleCancel = async () => {
+        if (!confirm("Bạn có chắc chắn muốn HỦY hoàn toàn dòng hàng này?")) return;
+        setIsSubmitting('CANCEL');
+        try {
+            const rulePrefix = (sod.deliveryCount || 0) === 0 ? 'A' : 'B';
+            const ruleId = `${rulePrefix}3`; // A3 hoặc B3
+
+            const updatedSOD = await executeBusinessRule(ruleId, sod, recordId, {
+                quantity: N_ON // Hủy toàn bộ nhu cầu còn lại
+            });
+
+            onUpdate(updatedSOD);
+            if (onSaveState) await onSaveState(updatedSOD);
+        } catch (error) {
+            console.error("Cancel Discrepancy Error:", error);
+            alert("Lỗi khi hủy đơn hàng.");
+        } finally {
+            setIsSubmitting(null);
+        }
+    };
+
+    // --- HANDLER: TỪ CHỐI (HỦY/KIỂM LẠI) ---
     const handleReject = async () => {
         if (!confirm("Bạn có chắc chắn muốn TỪ CHỐI báo cáo sai lệch này? (Yêu cầu Kho kiểm tra lại)")) return;
         setIsSubmitting('REJECT');
@@ -134,12 +175,22 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
                             {sod.saleDecision.action === 'SHIP_PARTIAL' || sod.saleDecision.action === 'SHIP_AND_CLOSE' ? (
                                 <div className="h-10 px-4 bg-emerald-50 text-[#00966d] border border-emerald-200 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
                                     <Check className="w-4 h-4" strokeWidth={4} />
-                                    ĐÃ XÁC NHẬN
+                                    ĐÃ XÁC NHẬN GIAO
+                                </div>
+                            ) : sod.saleDecision.action === 'WAIT_ALL' ? (
+                                <div className="h-10 px-4 bg-amber-50 text-amber-600 border border-amber-200 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
+                                    <Clock className="w-4 h-4" strokeWidth={3} />
+                                    ĐÃ XÁC NHẬN CHỜ
+                                </div>
+                            ) : sod.saleDecision.action === 'CANCEL_ORDER' ? (
+                                <div className="h-10 px-4 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
+                                    <X className="w-4 h-4" strokeWidth={3} />
+                                    ĐÃ CHỐT HỦY
                                 </div>
                             ) : sod.saleDecision.action === 'REJECT_REPORT' ? (
-                                <div className="h-10 px-4 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
-                                    <X className="w-4 h-4" strokeWidth={4} />
-                                    ĐÃ TỪ CHỐI
+                                <div className="h-10 px-4 bg-slate-50 text-slate-500 border border-slate-200 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
+                                    <ArrowRightLeft className="w-4 h-4" strokeWidth={3} />
+                                    YÊU CẦU KIỂM LẠI
                                 </div>
                             ) : (
                                 <div className="h-10 px-4 bg-gray-50 text-gray-600 border border-gray-200 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
@@ -149,33 +200,52 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
                             )}
                         </div>
                     ) : (
-                        <>
-                            {/* [NEW] Accept Button - Green Icon Design */}
+                        <div className="flex items-center gap-2">
+                            {/* 1. Nút Giao (Ship) */}
                             <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAccept();
-                                }}
+                                onClick={(e) => { e.stopPropagation(); handleAccept(); }}
                                 disabled={!!isSubmitting}
-                                className="w-12 h-12 rounded-2xl bg-[#00966d] text-white flex items-center justify-center shadow-lg shadow-emerald-100 hover:bg-[#007a58] transition-all active:scale-95 disabled:opacity-50"
-                                title="Xác nhận"
+                                className="h-11 px-4 rounded-xl bg-[#00966d] text-white flex items-center gap-2 shadow-lg shadow-emerald-100 hover:bg-[#007a58] transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wider"
+                                title="Xác nhận giao"
                             >
-                                {isSubmitting === 'ACCEPT' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-6 h-6" strokeWidth={4} />}
+                                {isSubmitting === 'ACCEPT' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" strokeWidth={4} />}
+                                <span>Giao</span>
                             </button>
 
-                            {/* [NEW] Reject Button - Pink Square Design */}
+                            {/* 2. Nút Chờ (Wait) */}
                             <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleReject();
-                                }}
+                                onClick={(e) => { e.stopPropagation(); handleWait(); }}
                                 disabled={!!isSubmitting}
-                                className="w-12 h-12 rounded-2xl bg-rose-50 border-2 border-rose-100 text-rose-500 flex items-center justify-center transition-all hover:bg-rose-100 hover:border-rose-200 active:scale-95 disabled:opacity-50"
-                                title="Từ chối"
+                                className="h-11 px-4 rounded-xl bg-amber-500 text-white flex items-center gap-2 shadow-lg shadow-amber-100 hover:bg-amber-600 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wider"
+                                title="Chờ hàng về"
                             >
-                                {isSubmitting === 'REJECT' ? <Loader2 className="w-5 h-5 animate-spin" /> : <X className="w-6 h-6" strokeWidth={3} />}
+                                {isSubmitting === 'WAIT' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clock className="w-4 h-4" strokeWidth={3} />}
+                                <span>Chờ</span>
                             </button>
-                        </>
+
+                            {/* 3. Nút Hủy (Cancel) - [Hided by User Request]
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleCancel(); }}
+                                disabled={!!isSubmitting}
+                                className="h-11 px-4 rounded-xl bg-rose-600 text-white flex items-center gap-2 shadow-lg shadow-rose-100 hover:bg-rose-700 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wider"
+                                title="Hủy dòng hàng"
+                            >
+                                {isSubmitting === 'CANCEL' ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" strokeWidth={3} />}
+                                <span>Hủy</span>
+                            </button>
+                            */}
+
+                            {/* 4. Nút Kiểm lại (Reject Report) */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleReject(); }}
+                                disabled={!!isSubmitting}
+                                className="h-11 px-4 rounded-xl bg-white border-2 border-slate-200 text-slate-500 flex items-center gap-2 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wider"
+                                title="Yêu cầu kiểm tra lại"
+                            >
+                                {isSubmitting === 'REJECT' ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRightLeft className="w-4 h-4" strokeWidth={3} />}
+                                <span>Kiểm lại</span>
+                            </button>
+                        </div>
                     )}
 
                     {/* Chevron for Expand/Collapse (Keep but make it less prominent) */}

@@ -25,12 +25,12 @@ const DEPARTMENT_ROLE_MAP: { [key: string]: UserRole } = {
 
 // --- TEST CUSTOMERS CONFIGURATION (FOR ADMIN/TESTING) ---
 const TEST_CUSTOMER_IDS = [
-    "09480845-9ace-f011-8544-000d3aa05927",
-    "d1c527be-4f22-4a59-b013-242621addb40"
+    "c585ae98-4585-f011-b4cc-6045bd1d396f",
+
 ];
 
 // [DEV] Record ID phiếu demo để test
-const DEV_RECORD_ID = "48fd56b4-fbfb-f011-8406-000d3aa21281";
+const DEV_RECORD_ID = "da5fb5b6-b1f5-f011-8406-000d3aa213fd";
 
 const getRoleFromDepartment = (department: string | null): UserRole => {
     if (!department) return UserRole.ADMIN;
@@ -95,12 +95,17 @@ const App: React.FC = () => {
 
     // Combine Test IDs with current selected customer ID to ensure it appears in dropdown
     const customerOptions = useMemo(() => {
+        // [FIX] Nếu đang xử lý yêu cầu (isRequestCreator = false), chỉ hiện khách hàng hiện tại
+        if (!isRequestCreator && selectedCustomer?.id) {
+            return [selectedCustomer.id];
+        }
+
         const ids = new Set(TEST_CUSTOMER_IDS);
         if (selectedCustomer?.id) {
             ids.add(selectedCustomer.id);
         }
         return Array.from(ids);
-    }, [selectedCustomer]);
+    }, [selectedCustomer, isRequestCreator]);
 
     useEffect(() => {
         const initContext = async () => {
@@ -626,12 +631,16 @@ const App: React.FC = () => {
 
                 <div className="relative" ref={roleMenuRef}>
                     <button
-                        onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
-                        className="flex items-center gap-3 px-5 py-2 rounded-2xl border border-slate-700 bg-slate-800 hover:bg-slate-700 transition-all shadow-xl active:scale-95 group"
+                        onClick={() => currentRole === UserRole.ADMIN && setIsRoleMenuOpen(!isRoleMenuOpen)}
+                        disabled={currentRole !== UserRole.ADMIN}
+                        className={`flex items-center gap-3 px-5 py-2 rounded-2xl border transition-all shadow-xl active:scale-95 group 
+                            ${currentRole === UserRole.ADMIN
+                                ? 'border-slate-700 bg-slate-800 hover:bg-slate-700'
+                                : 'border-slate-800 bg-slate-900/50 opacity-60 cursor-not-allowed'}`}
                     >
-                        {React.createElement(currentIcon, { className: "w-4 h-4 text-indigo-400 group-hover:scale-110 transition-all" })}
+                        {React.createElement(currentIcon, { className: `w-4 h-4 group-hover:scale-110 transition-all ${currentRole === UserRole.ADMIN ? 'text-indigo-400' : 'text-slate-500'}` })}
                         <span className="text-[10px] font-black text-slate-200 uppercase tracking-widest truncate max-w-[150px]">{displayRoleName}</span>
-                        <ChevronDown className="w-4 h-4 text-slate-500 group-hover:translate-y-0.5 transition-transform" />
+                        {currentRole === UserRole.ADMIN && <ChevronDown className="w-4 h-4 text-slate-500 group-hover:translate-y-0.5 transition-transform" />}
                     </button>
 
                     {isRoleMenuOpen && (
