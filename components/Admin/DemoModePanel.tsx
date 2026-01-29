@@ -69,6 +69,8 @@ interface PayloadLogEntry {
 }
 
 interface DemoModePanelProps {
+    isOpen: boolean;
+    onClose: () => void;
     primaryRole: UserRole;
     currentRole: UserRole;
     onRoleChange: (role: UserRole) => void;
@@ -94,11 +96,13 @@ const getReceiverRole = (actionType: string): UserRole => {
 };
 
 export const DemoModePanel: React.FC<DemoModePanelProps> = ({
+    isOpen,
+    onClose,
     primaryRole,
     currentRole,
     onRoleChange
 }) => {
-    const [isDemoMode, setIsDemoMode] = useState(false);
+    // Removed: const [isDemoMode, setIsDemoMode] = useState(false);
     const [selectedCaseId, setSelectedCaseId] = useState<string>('');
     const [currentTestCase, setCurrentTestCase] = useState<DemoTestCase | null>(null);
     const [currentSOD, setCurrentSOD] = useState<SOD | null>(null);
@@ -144,7 +148,7 @@ export const DemoModePanel: React.FC<DemoModePanelProps> = ({
                 setPayloadLogs(JSON.parse(stored));
             }
         } catch { }
-    }, [isDemoMode]);
+    }, [isOpen]);
 
     // Load test case và check pending action
     useEffect(() => {
@@ -446,21 +450,9 @@ export const DemoModePanel: React.FC<DemoModePanelProps> = ({
         log => log.testCaseId === selectedCaseId && log.toRole === currentRole
     );
 
-    if (!isDemoMode) {
-        return (
-            <button
-                onClick={() => setIsDemoMode(true)}
-                className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl shadow-lg hover:bg-purple-700 transition-all hover:scale-105 active:scale-95"
-            >
-                <FlaskConical className="w-5 h-5" />
-                <span className="font-bold text-sm uppercase tracking-wider">Demo Mode</span>
-                {(modifiedCount > 0 || payloadLogs.length > 0) && (
-                    <span className="bg-white text-purple-600 text-xs font-bold px-2 py-0.5 rounded-full">
-                        {payloadLogs.length || modifiedCount}
-                    </span>
-                )}
-            </button>
-        );
+    // Không render gì khi đóng - button trigger ở header App.tsx
+    if (!isOpen) {
+        return null;
     }
 
     return (
@@ -475,14 +467,14 @@ export const DemoModePanel: React.FC<DemoModePanelProps> = ({
                             <h1 className="text-xl font-black uppercase tracking-wider">Workflow Demo</h1>
                         </div>
                         <span className={`text-xs px-3 py-1 rounded-full border ${primaryRole === UserRole.ADMIN
-                                ? 'text-purple-400 bg-purple-500/10 border-purple-500/30'
-                                : 'text-slate-400 bg-slate-800 border-slate-700'
+                            ? 'text-purple-400 bg-purple-500/10 border-purple-500/30'
+                            : 'text-slate-400 bg-slate-800 border-slate-700'
                             }`}>
                             {primaryRole === UserRole.ADMIN ? 'Admin - Xem tất cả' : `Phòng ${primaryRole}`}
                         </span>
                     </div>
                     <button
-                        onClick={() => setIsDemoMode(false)}
+                        onClick={onClose}
                         className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
                     >
                         <X className="w-5 h-5" />

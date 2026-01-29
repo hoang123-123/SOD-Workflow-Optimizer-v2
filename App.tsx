@@ -65,7 +65,7 @@ const App: React.FC = () => {
     const [showRestoredBadge, setShowRestoredBadge] = useState(false);
 
     // Modals
-    // showWorkflowGuide removed - replaced by DemoModePanel
+    const [showDemoMode, setShowDemoMode] = useState(false);
 
     // Dropdowns
     const [isOrderDropdownOpen, setIsOrderDropdownOpen] = useState(false);
@@ -601,15 +601,14 @@ const App: React.FC = () => {
 
         return (
             <div className="flex items-center gap-3">
-                {/* [UPDATED] Demo Mode button - Mọi role đều thấy */}
+                {/* Demo Mode Button - Trigger */}
                 <button
-                    onClick={handleLoadDemoData}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-purple-500 hover:bg-purple-600 text-white transition-all shadow-lg shadow-purple-500/30 active:scale-95 group"
+                    onClick={() => setShowDemoMode(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-purple-500 hover:bg-purple-600 text-white transition-all shadow-lg shadow-purple-500/20 active:scale-95"
                 >
-                    <FlaskConical className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <FlaskConical className="w-4 h-4" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Demo Mode</span>
                 </button>
-
                 {contextRecordId && saveStatus !== 'IDLE' && (
                     <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all duration-300 animate-in fade-in slide-in-from-right-4 
                         ${saveStatus === 'SAVING' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 shadow-indigo-500/10' : ''}
@@ -1026,8 +1025,10 @@ const App: React.FC = () => {
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
             `}</style>
 
-            {/* [NEW] Demo Mode Panel - Chỉ Admin thấy */}
+            {/* Demo Mode Panel */}
             <DemoModePanel
+                isOpen={showDemoMode}
+                onClose={() => setShowDemoMode(false)}
                 primaryRole={primaryRole}
                 currentRole={currentRole}
                 onRoleChange={setCurrentRole}
