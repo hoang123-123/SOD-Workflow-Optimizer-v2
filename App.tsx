@@ -536,7 +536,7 @@ const App: React.FC = () => {
             } else if (currentRole === UserRole.WAREHOUSE) {
                 const isPlanSufficient = sod.statusFromPlan === 'Đủ';
                 const hasAnyUrgentRequest = !!sod.urgentRequest;
-                const hasSaleDecision = !!sod.saleDecision;
+                // [DEPRECATED] const hasSaleDecision = !!sod.saleDecision; // Không dùng vì WarehouseActionCard đã deprecated
                 const hasWarehouseDiscrepancy = !!sod.warehouseVerification;
 
                 if (!isRequestCreator) {
@@ -544,8 +544,9 @@ const App: React.FC = () => {
                     if (hasWarehouseDiscrepancy) {
                         // ƯU TIÊN 1: Nếu có sai lệch -> Đưa vào discrepancy
                         discrepancy.push(sod);
-                    } else if (hasAnyUrgentRequest || hasSaleDecision) {
-                        // ƯU TIÊN 2: Nếu không có sai lệch nhưng là Yêu cầu gấp hoặc lệnh xuất hàng -> Đưa vào shortage
+                    } else if (hasAnyUrgentRequest && sod.urgentRequest?.status === 'PENDING') {
+                        // [FIX - 2026-01-29] Chỉ hiện yêu cầu gấp đang PENDING
+                        // Bỏ hasSaleDecision vì WarehouseActionCard đã deprecated
                         shortage.push(sod);
                     }
                 } else {
