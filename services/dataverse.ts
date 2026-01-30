@@ -248,37 +248,65 @@ export const fetchSODsByOrder = async (orderId: string, soNumber: string, wareho
 
     const data = await fetchFromDataverse(query);
 
-    // [NEW] Query bảng kho để lấy tồn kho lý thuyết bỏ mua
-    // Map từ productId -> tonKhoLyThuyetBoMua
-    const inventoryMap: Record<string, number> = {};
-
-    if (warehouseLocationId) {
-        const cleanWarehouseId = warehouseLocationId.replace(/[{}]/g, "");
-        try {
-            // Lấy tất cả bản ghi kho có vị trí kho khớp với SO
-            const inventoryQuery = `crdfd_kho_binh_dinhs?$select=_crdfd_tensanphamlookup_value,cr1bb_tonkholythuyetbomua&$filter=statecode eq 0 and _crdfd_vitrikho_value eq ${cleanWarehouseId}`;
-            const inventoryData = await fetchFromDataverse(inventoryQuery);
-
-            // Build map từ productId -> tonKhoLyThuyetBoMua
-            if (inventoryData.value && Array.isArray(inventoryData.value)) {
-                inventoryData.value.forEach((inv: any) => {
-                    const productId = inv._crdfd_tensanphamlookup_value;
-                    if (productId) {
-                        inventoryMap[productId.toLowerCase()] = inv.cr1bb_tonkholythuyetbomua || 0;
-                    }
-                });
-            }
-            console.log(`📦 [Inventory] Loaded ${Object.keys(inventoryMap).length} products from warehouse ${cleanWarehouseId}`);
-        } catch (e) {
-            console.warn('⚠️ [Inventory] Could not fetch inventory data from kho_binh_dinh:', e);
-        }
-    }
-
     // FIX: Lọc client-side để đảm bảo chỉ lấy những dòng có kế hoạch (cả thiếu và đủ)
     const filteredItems = data.value.filter((item: any) => {
         const plans = item.crdfd_kehoachsoanhangdetail_onbanchitiet_crdfd_saleorderdetail;
         return Array.isArray(plans) && plans.length > 0;
     });
+
+    // [OPTIMIZED] Query bảng kho CHỈ với những sản phẩm có trong SOD
+    // Thay vì query toàn bộ kho (10,000+ rows), chỉ query những productId cần thiết
+    const inventoryMap: Record<string, number> = {};
+
+    if (warehouseLocationId && filteredItems.length > 0) {
+        const cleanWarehouseId = warehouseLocationId.replace(/[{}]/g, "");
+
+        // Lấy danh sách productId unique từ SOD
+        const productIds = [...new Set(
+            filteredItems
+                .map((item: any) => item._crdfd_sanpham_value)
+                .filter((id: any) => id) // Loại bỏ null/undefined
+        )] as string[];
+
+        if (productIds.length > 0) {
+            try {
+                // Build filter với OR conditions (max ~50 items per batch để tránh URL quá dài)
+                const BATCH_SIZE = 50;
+                const batches: string[][] = [];
+                for (let i = 0; i < productIds.length; i += BATCH_SIZE) {
+                    batches.push(productIds.slice(i, i + BATCH_SIZE));
+                }
+
+                // Query song song các batch
+                const batchPromises = batches.map(async (batchIds) => {
+                    const productFilter = batchIds
+                        .map(id => `_crdfd_tensanphamlookup_value eq ${id}`)
+                        .join(' or ');
+
+                    const inventoryQuery = `crdfd_kho_binh_dinhs?$select=_crdfd_tensanphamlookup_value,cr1bb_tonkholythuyetbomua&$filter=statecode eq 0 and _crdfd_vitrikho_value eq ${cleanWarehouseId} and (${productFilter})`;
+                    return fetchFromDataverse(inventoryQuery);
+                });
+
+                const batchResults = await Promise.all(batchPromises);
+
+                // Merge tất cả results vào inventoryMap
+                batchResults.forEach(inventoryData => {
+                    if (inventoryData.value && Array.isArray(inventoryData.value)) {
+                        inventoryData.value.forEach((inv: any) => {
+                            const productId = inv._crdfd_tensanphamlookup_value;
+                            if (productId) {
+                                inventoryMap[productId.toLowerCase()] = inv.cr1bb_tonkholythuyetbomua || 0;
+                            }
+                        });
+                    }
+                });
+
+                console.log(`📦 [Inventory] Loaded ${Object.keys(inventoryMap).length}/${productIds.length} products from warehouse ${cleanWarehouseId}`);
+            } catch (e) {
+                console.warn('⚠️ [Inventory] Could not fetch inventory data from kho_binh_dinh:', e);
+            }
+        }
+    }
 
     return filteredItems.map((item: any) => {
         // Map dữ liệu
