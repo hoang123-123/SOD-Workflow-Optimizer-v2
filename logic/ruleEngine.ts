@@ -59,6 +59,14 @@ export const executeBusinessRule = async (
                 timestamp: new Date().toISOString(),
                 isFactory: isFactory
             };
+
+            // [UPDATED] Tự động xác nhận kho (Auto-Approve) cho TẤT CẢ khách hàng
+            // Vì khi Sale chốt giao, hệ thống đã tự động chạy kế hoạch soạn hàng
+            updatedSOD.warehouseConfirmation = {
+                status: 'CONFIRMED',
+                timestamp: new Date().toISOString()
+            };
+
             // Nếu chuyển sang Ship -> Xóa Source Plan cũ (nếu có)
             updatedSOD.sourcePlan = undefined;
             break;
