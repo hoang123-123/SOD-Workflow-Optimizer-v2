@@ -161,8 +161,10 @@ export const SaleUrgentCard: React.FC<SaleUrgentCardProps> = ({ sod, recordId, o
                         <LabelText className="text-[9px] uppercase tracking-wide text-amber-600">Cần giao</LabelText>
                         <div className="flex items-baseline gap-1">
                             <span className="text-lg font-bold text-gray-900">{rs}</span>
+                            <span className="text-[9px] text-gray-400 font-semibold uppercase">{sod.unitOrderName || 'SP'}</span>
                             <span className="text-amber-300 mx-0.5">/</span>
-                            <span className="text-base font-semibold text-amber-500">{rs * (sod.conversionRate || 1)}</span>
+                            <span className="text-base font-semibold text-amber-500">{Math.round(rs * (sod.conversionRate || 1))}</span>
+                            <span className="text-[9px] text-amber-400 font-semibold uppercase">{sod.unitWarehouseName || 'SP'}</span>
                         </div>
                     </div>
                     <div className="h-8 w-px bg-gray-200 hidden md:block"></div>
