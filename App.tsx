@@ -332,16 +332,29 @@ const App: React.FC = () => {
                 const savedState = normalizedHistoryMap[normId];
                 console.log("📦 [History] SOD not in DB, creating from history:", savedState.originalId);
 
-                // Tạo SOD tối thiểu từ history
+                // Tạo SOD đầy đủ từ history (sử dụng tất cả thông tin đã lưu)
                 const historySod: SOD = {
                     id: savedState.originalId,
-                    detailName: `SOD (Từ History)`,
-                    soNumber: history.context?.orderNumber || '',
-                    product: { sku: 'N/A', name: 'Sản phẩm (từ History)' },
-                    qtyOrdered: 0,
-                    qtyDelivered: 0,
+                    detailName: savedState.detailName || `SOD (Từ History)`,
+                    soNumber: savedState.soNumber || history.context?.orderNumber || '',
+                    product: savedState.product || { sku: 'N/A', name: 'Sản phẩm (từ History)' },
+
+                    // Số lượng
+                    qtyOrdered: savedState.qtyOrdered || 0,
+                    qtyDelivered: savedState.qtyDelivered || 0,
                     qtyAvailable: savedState.qtyAvailable || 0,
+                    qtyOrderRemainingON: savedState.qtyOrderRemainingON,
+                    qtyOrderRemainingWH: savedState.qtyOrderRemainingWH,
+
+                    // Đơn vị
+                    unitOrderName: savedState.unitOrderName,
+                    unitWarehouseName: savedState.unitWarehouseName,
+                    conversionRate: savedState.conversionRate,
+                    warehouseLocation: savedState.warehouseLocation,
+
+                    // Trạng thái & thao tác
                     status: savedState.status || SODStatus.SUFFICIENT,
+                    statusFromPlan: savedState.statusFromPlan,
                     isNotificationSent: savedState.isNotificationSent || false,
                     saleDecision: savedState.saleDecision,
                     urgentRequest: savedState.urgentRequest,
@@ -459,17 +472,37 @@ const App: React.FC = () => {
                 orderId: selectedOrder,
                 orderNumber: currentOrderInfo?.soNumber || orderSearch,
                 customerId: selectedCustomer?.id, // [FIX] Lưu customerId để restore đúng
+                customerName: selectedCustomer?.name, // [NEW] Lưu tên khách hàng
             },
             sods: currentSods.reduce((acc, sod) => {
                 acc[sod.id] = {
+                    // === THÔNG TIN SẢN PHẨM (để restore đầy đủ) ===
+                    detailName: sod.detailName,
+                    product: sod.product, // {sku, name}
+                    soNumber: sod.soNumber,
+
+                    // === SỐ LƯỢNG ===
+                    qtyOrdered: sod.qtyOrdered,
+                    qtyDelivered: sod.qtyDelivered,
                     qtyAvailable: sod.qtyAvailable,
+                    qtyOrderRemainingON: sod.qtyOrderRemainingON,
+                    qtyOrderRemainingWH: sod.qtyOrderRemainingWH,
+
+                    // === ĐƠN VỊ ===
+                    unitOrderName: sod.unitOrderName,
+                    unitWarehouseName: sod.unitWarehouseName,
+                    conversionRate: sod.conversionRate,
+                    warehouseLocation: sod.warehouseLocation,
+
+                    // === TRẠNG THÁI & CÁC BÊN ĐÃ THAO TÁC ===
                     status: sod.status,
+                    statusFromPlan: sod.statusFromPlan,
                     isNotificationSent: sod.isNotificationSent,
-                    saleDecision: sod.saleDecision,
-                    urgentRequest: sod.urgentRequest,
-                    sourcePlan: sod.sourcePlan,
-                    warehouseConfirmation: sod.warehouseConfirmation,
-                    warehouseVerification: sod.warehouseVerification
+                    saleDecision: sod.saleDecision,        // Sale đã quyết định gì
+                    urgentRequest: sod.urgentRequest,      // Yêu cầu gấp
+                    sourcePlan: sod.sourcePlan,            // Source đã phản hồi gì
+                    warehouseConfirmation: sod.warehouseConfirmation, // Kho đã xác nhận
+                    warehouseVerification: sod.warehouseVerification  // Kho đã báo lệch
                 };
                 return acc;
             }, {} as Record<string, any>)
