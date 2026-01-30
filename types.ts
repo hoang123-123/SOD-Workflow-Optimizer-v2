@@ -111,6 +111,7 @@ export interface SalesOrder {
   priority: string;
   deliveryMethod?: number; // cr1bb_hinhthucgiaohang
   sodCount?: number;
+  warehouseLocationId?: string; // [NEW] _cr1bb_vitrikho_value - ID vị trí kho
 }
 
 // [MOVED HERE TO FIX CIRCULAR DEPENDENCY]

@@ -266,8 +266,8 @@ const App: React.FC = () => {
                         setSelectedOrder(targetOrder.id);
                         setOrderSearch(targetOrder.soNumber || '');
 
-                        // Fetch and Apply
-                        const sodsData = await fetchSODsByOrder(targetOrder.id, targetOrder.soNumber);
+                        // Fetch and Apply - truyền warehouseLocationId để query bảng kho
+                        const sodsData = await fetchSODsByOrder(targetOrder.id, targetOrder.soNumber, targetOrder.warehouseLocationId);
                         const mergedSods = applyHistoryToSods(sodsData, effectiveHistory);
                         setSods(mergedSods);
                     }
@@ -338,7 +338,8 @@ const App: React.FC = () => {
         setIsOrderDropdownOpen(false);
         try {
             setIsLoading(true);
-            const data = await fetchSODsByOrder(order.id, order.soNumber);
+            // Truyền warehouseLocationId để query bảng kho
+            const data = await fetchSODsByOrder(order.id, order.soNumber, order.warehouseLocationId);
 
             // Re-apply history if available
             const merged = applyHistoryToSods(data, historyData);
