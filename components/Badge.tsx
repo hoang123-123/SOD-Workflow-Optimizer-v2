@@ -45,19 +45,12 @@ export const StatusBadge: React.FC<BadgeProps> = ({ sod }) => {
         );
       }
 
-      // 2. Nếu Sale chọn GIAO (SHIP_PARTIAL)
-      if (sod.saleDecision?.action === 'SHIP_PARTIAL') {
-        // 2a. Kho chưa xác nhận -> CHỜ KHO
-        if (!sod.warehouseConfirmation) {
-          return (
-            <span className={`${baseClasses} bg-indigo-50 text-indigo-700 border-indigo-200 animate-pulse`}>
-              <Warehouse className="w-3.5 h-3.5" />
-              Chờ Kho Xử Lý
-            </span>
-          );
-        }
-        // 2b. Kho TỪ CHỐI
-        if (sod.warehouseConfirmation.status === 'REJECTED') {
+      // 2. Nếu Sale chọn GIAO (SHIP_PARTIAL hoặc SHIP_AND_CLOSE)
+      const isShipAction = sod.saleDecision?.action === 'SHIP_PARTIAL' || sod.saleDecision?.action === 'SHIP_AND_CLOSE';
+      if (isShipAction) {
+        // [FIX] Khi Sale chọn Giao, hệ thống đã tự động xác nhận kho (auto-approve)
+        // Nên không còn case "Chờ Kho Xử Lý" - chỉ hiển thị nếu Kho từ chối
+        if (sod.warehouseConfirmation?.status === 'REJECTED') {
           return (
             <span className={`${baseClasses} bg-red-50 text-red-700 border-red-200`}>
               <ShieldAlert className="w-3.5 h-3.5" />
@@ -65,7 +58,7 @@ export const StatusBadge: React.FC<BadgeProps> = ({ sod }) => {
             </span>
           );
         }
-        // 2c. Kho ĐÃ XUẤT (CONFIRMED)
+        // Mặc định: Đã hoàn tất (có hoặc không có warehouseConfirmation)
         return (
           <span className={`${baseClasses} bg-blue-50 text-blue-700 border-blue-200`}>
             <PackageCheck className="w-3.5 h-3.5" />
