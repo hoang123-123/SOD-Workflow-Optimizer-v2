@@ -105,7 +105,7 @@ export const WarehouseUrgentCard: React.FC<WarehouseUrgentCardProps> = ({
                             <span className="text-lg font-bold text-gray-900">{rs}</span>
                             <span className="text-[9px] text-gray-400 font-semibold uppercase">{sod.unitOrderName || 'SP'}</span>
                             <span className="text-gray-300 mx-0.5">/</span>
-                            <span className="text-base font-semibold text-amber-500">{Math.round(rs * (sod.conversionRate || 1))}</span>
+                            <span className="text-base font-semibold text-amber-500">{(rs * (sod.conversionRate || 1)).toFixed(2)}</span>
                             <span className="text-[9px] text-amber-400 font-semibold uppercase">{sod.unitWarehouseName || 'SP'}</span>
                         </div>
                     </div>
