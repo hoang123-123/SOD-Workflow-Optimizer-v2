@@ -226,9 +226,15 @@ const App: React.FC = () => {
                 setCurrentRole(initialRole);
                 setPrimaryRole(initialRole);
 
+                // [FIX] Thử lấy customerId từ history context nếu không có từ URL
                 if (!customerId || customerId === 'undefined' || customerId === 'null') {
-                    // Default to the first test customer if no specific customer is provided
-                    customerId = TEST_CUSTOMER_IDS[0];
+                    if (effectiveHistory?.context?.customerId) {
+                        customerId = effectiveHistory.context.customerId;
+                        console.log("🔍 Using customerId from history context:", customerId);
+                    } else {
+                        // Default to the first test customer if no specific customer is provided
+                        customerId = TEST_CUSTOMER_IDS[0];
+                    }
                 }
 
                 if (!customerId) {
@@ -291,14 +297,19 @@ const App: React.FC = () => {
 
         const normalizedHistoryMap: Record<string, any> = {};
         Object.keys(history.sods).forEach(key => {
-            normalizedHistoryMap[normalizeId(key)] = history.sods[key];
+            normalizedHistoryMap[normalizeId(key)] = { ...history.sods[key], originalId: key };
         });
 
-        return freshSods.map(sod => {
+        // Track which history SODs are matched
+        const matchedHistoryIds = new Set<string>();
+
+        // 1. Merge history vào freshSods (SOD có trong DB)
+        const mergedSods = freshSods.map(sod => {
             const normId = normalizeId(sod.id);
             const savedState = normalizedHistoryMap[normId];
 
             if (savedState) {
+                matchedHistoryIds.add(normId);
                 return {
                     ...sod,
                     qtyAvailable: savedState.qtyAvailable !== undefined ? savedState.qtyAvailable : sod.qtyAvailable,
@@ -313,6 +324,37 @@ const App: React.FC = () => {
             }
             return sod;
         });
+
+        // 2. [FIX] Tạo SOD từ history cho những SOD KHÔNG có trong DB (đã giao xong)
+        const historySodsNotInDb: SOD[] = [];
+        Object.keys(normalizedHistoryMap).forEach(normId => {
+            if (!matchedHistoryIds.has(normId)) {
+                const savedState = normalizedHistoryMap[normId];
+                console.log("📦 [History] SOD not in DB, creating from history:", savedState.originalId);
+
+                // Tạo SOD tối thiểu từ history
+                const historySod: SOD = {
+                    id: savedState.originalId,
+                    detailName: `SOD (Từ History)`,
+                    soNumber: history.context?.orderNumber || '',
+                    product: { sku: 'N/A', name: 'Sản phẩm (từ History)' },
+                    qtyOrdered: 0,
+                    qtyDelivered: 0,
+                    qtyAvailable: savedState.qtyAvailable || 0,
+                    status: savedState.status || SODStatus.SUFFICIENT,
+                    isNotificationSent: savedState.isNotificationSent || false,
+                    saleDecision: savedState.saleDecision,
+                    urgentRequest: savedState.urgentRequest,
+                    sourcePlan: savedState.sourcePlan,
+                    warehouseConfirmation: savedState.warehouseConfirmation,
+                    warehouseVerification: savedState.warehouseVerification
+                };
+                historySodsNotInDb.push(historySod);
+            }
+        });
+
+        // Kết hợp cả 2 nguồn
+        return [...mergedSods, ...historySodsNotInDb];
     };
 
     useEffect(() => {
@@ -416,6 +458,7 @@ const App: React.FC = () => {
             context: {
                 orderId: selectedOrder,
                 orderNumber: currentOrderInfo?.soNumber || orderSearch,
+                customerId: selectedCustomer?.id, // [FIX] Lưu customerId để restore đúng
             },
             sods: currentSods.reduce((acc, sod) => {
                 acc[sod.id] = {
