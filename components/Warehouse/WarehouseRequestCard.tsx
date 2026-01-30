@@ -115,7 +115,7 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Số lượng kho báo</div>
+                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Số lượng kho</div>
                         <div className="text-xl font-black text-gray-900">{v.actualQty} <span className="text-xs text-gray-400 font-bold uppercase">{sod.unitWarehouseName}</span></div>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
