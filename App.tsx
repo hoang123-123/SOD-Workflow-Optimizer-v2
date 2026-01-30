@@ -527,7 +527,9 @@ const App: React.FC = () => {
                     // [MODE: TẠO REQUEST] - Load data tự động từ hệ thống
                     if (hasWarehouseDiscrepancy) {
                         discrepancy.push(sod);
-                    } else if (isShortageStatus || isShortageFromPlan) {
+                    } else if ((isShortageStatus || isShortageFromPlan) && isDue) {
+                        // [FIX] Chỉ hiển thị đơn thiếu hàng đã đến hạn giao (isDue = true)
+                        // Tránh Sale thao tác sai với đơn thiếu chưa đến ngày giao
                         shortage.push(sod);
                     } else if ((isFuture && isUrgentPotential) || isUrgentPending) {
                         sufficient.push(sod);
