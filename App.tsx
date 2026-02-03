@@ -118,7 +118,8 @@ const App: React.FC = () => {
                 let customerId: string | null = null;
                 let recordId: string | null = null;
                 let saleIDParam: string | null = urlParams.get('saleID');
-                let historyValueParam: string | null = urlParams.get('historyValue');
+                // [REMOVED] historyValue từ URL - giờ chỉ fetch từ DB bằng recordId
+                // let historyValueParam: string | null = urlParams.get('historyValue');
                 let directDeptParam = urlParams.get('department') || urlParams.get('phongBan');
                 const directRoleParam = urlParams.get('role')?.toUpperCase();
 
@@ -137,7 +138,7 @@ const App: React.FC = () => {
 
                     if (!directDeptParam) directDeptParam = customParams.get('department') || customParams.get('phongBan');
                     if (!saleIDParam) saleIDParam = customParams.get('saleID');
-                    if (!historyValueParam) historyValueParam = customParams.get('historyValue');
+                    // [REMOVED] Không đọc historyValue từ URL nữa
                 }
 
                 // Fallback to top level params
@@ -156,27 +157,11 @@ const App: React.FC = () => {
                     recordId = DEV_RECORD_ID;
                 }
 
-                // --- HISTORY RETRIEVAL STRATEGY ---
+                // --- HISTORY RETRIEVAL STRATEGY (UPDATED: Chỉ dùng recordId, không đọc từ URL) ---
                 let effectiveHistory = null;
                 let sourceOfTruth = 'NONE';
 
-                // 1. PRIORITY: URL History
-                if (historyValueParam) {
-                    try {
-                        const decodedHistory = decodeURIComponent(historyValueParam);
-                        effectiveHistory = JSON.parse(decodedHistory);
-                        sourceOfTruth = 'URL';
-                    } catch (e) {
-                        try {
-                            effectiveHistory = JSON.parse(historyValueParam);
-                            sourceOfTruth = 'URL_RAW';
-                        } catch (e2) {
-                            console.warn("Failed to parse history from URL");
-                        }
-                    }
-                }
-
-                // 2. SECONDARY: DB Fetch (Only if URL has no history and we have a RecordID)
+                // [UPDATED] Luôn fetch history từ DB bằng recordId (không đọc từ URL nữa vì quá nặng)
                 if (recordId) {
                     const normRecordId = normalizeId(recordId);
                     setContextRecordId(normRecordId);
@@ -184,13 +169,17 @@ const App: React.FC = () => {
                     // Only fetch from DB if it looks like a valid GUID to avoid errors with "DEV_TEST_RECORD_ID"
                     const isValidGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(normRecordId);
 
-                    if (!effectiveHistory && isValidGuid) {
+                    if (isValidGuid) {
                         setIsRestoring(true);
                         try {
+                            console.log('📥 [History] Fetching from Dataverse with recordId:', normRecordId);
                             const dbHistory = await fetchRequestHistory(normRecordId);
                             if (dbHistory) {
                                 effectiveHistory = dbHistory;
                                 sourceOfTruth = 'DATAVERSE';
+                                console.log('✅ [History] Successfully loaded from Dataverse');
+                            } else {
+                                console.log('ℹ️ [History] No history found in Dataverse for this record');
                             }
                         } catch (e) {
                             console.warn("Could not fetch history from DB:", e);
