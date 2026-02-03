@@ -188,7 +188,6 @@ const App: React.FC = () => {
                         setIsRestoring(true);
                         try {
                             const dbHistory = await fetchRequestHistory(normRecordId);
-                            console.log("dbHistory", dbHistory);
                             if (dbHistory) {
                                 effectiveHistory = dbHistory;
                                 sourceOfTruth = 'DATAVERSE';
@@ -618,26 +617,23 @@ const App: React.FC = () => {
                 // [DEPRECATED] const hasSaleDecision = !!sod.saleDecision; // Không dùng vì WarehouseActionCard đã deprecated
                 const hasWarehouseDiscrepancy = !!sod.warehouseVerification;
 
-                if (!isRequestCreator) {
-                    // [MODE: XỬ LÝ] - Kho xử lý các yêu cầu hoặc xem lại báo cáo
-                    if (hasWarehouseDiscrepancy) {
-                        // ƯU TIÊN 1: Nếu có sai lệch -> Đưa vào discrepancy
-                        discrepancy.push(sod);
-                    } else if (hasAnyUrgentRequest && sod.urgentRequest?.status === 'PENDING') {
-                        // [FIX - 2026-01-29] Chỉ hiện yêu cầu gấp đang PENDING
-                        // Bỏ hasSaleDecision vì WarehouseActionCard đã deprecated
-                        shortage.push(sod);
-                    }
+                // [FIX - 2026-02-03] Luôn hiển thị urgentRequest cho Kho, bất kể isRequestCreator
+                // Vì khi switch role từ Sale sang Kho trong cùng session, isRequestCreator vẫn = true
+                // nhưng Kho vẫn cần thấy request gấp mà Sale vừa tạo
+                if (hasWarehouseDiscrepancy) {
+                    // ƯU TIÊN 1: Nếu có sai lệch -> Đưa vào discrepancy
+                    discrepancy.push(sod);
+                } else if (hasAnyUrgentRequest) {
+                    // ƯU TIÊN 2: Có yêu cầu gấp (bất kể PENDING hay đã xử lý)
+                    // [FIX] Bỏ check isRequestCreator để đảm bảo Kho luôn thấy request từ Sale
+                    shortage.push(sod);
+                } else if (!isRequestCreator) {
+                    // [MODE: XỬ LÝ] - Không có thêm action nào (đã xử lý hết ở trên)
+                    // Giữ trống để không hiện đơn không có action
                 } else {
-                    // [MODE: TẠO MỚI] - Kho khởi tạo yêu cầu
-                    if (hasWarehouseDiscrepancy) {
-                        // ƯU TIÊN 1: Đã có báo cáo sai lệch
-                        discrepancy.push(sod);
-                    } else if (hasAnyUrgentRequest) {
-                        // ƯU TIÊN 2: Đã có yêu cầu gấp
-                        shortage.push(sod);
-                    } else if (isDue && isPlanSufficient) {
-                        // ƯU TIÊN 3: Đơn đủ hàng đến hạn
+                    // [MODE: TẠO MỚI] - Kho khởi tạo yêu cầu mới
+                    if (isDue && isPlanSufficient) {
+                        // Đơn đủ hàng đến hạn
                         sufficient.push(sod);
                     }
                 }

@@ -180,8 +180,6 @@ export const fetchOrdersByCustomer = async (customerId: string): Promise<SalesOr
     const data = await fetchFromDataverse(query);
     const ordersRaw = data.value;
 
-    console.log(`[Dataverse] Orders found for customer ${cleanId}:`, ordersRaw);
-
     // Fix: Vì Rollup field chậm, ta sẽ gọi song song các request $count=true vào bảng chi tiết
     // để lấy số lượng thực tế (Real-time).
     // Dùng $top=0 để query cực nhanh (chỉ lấy số đếm header).
@@ -422,7 +420,6 @@ export const fetchRequestHistory = async (requestId: string): Promise<any | null
         }
 
         const data = await response.json();
-        console.log("data", data);
         // UPDATED: Check crdfd_history
         if (data.cr1bb_history1) {
             try {
