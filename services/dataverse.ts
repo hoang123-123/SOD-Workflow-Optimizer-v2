@@ -1,4 +1,5 @@
 
+import { log } from 'console';
 import { DATAVERSE_CONFIG, DATAVERSE_STATUS_MAP } from '../config';
 import { Customer, SalesOrder, SOD, SODStatus } from '../types';
 
@@ -421,6 +422,7 @@ export const fetchRequestHistory = async (requestId: string): Promise<any | null
         }
 
         const data = await response.json();
+        console.log("data", data);
         // UPDATED: Check crdfd_history
         if (data.cr1bb_history1) {
             try {

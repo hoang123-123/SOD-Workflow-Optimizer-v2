@@ -188,6 +188,7 @@ const App: React.FC = () => {
                         setIsRestoring(true);
                         try {
                             const dbHistory = await fetchRequestHistory(normRecordId);
+                            console.log("dbHistory", dbHistory);
                             if (dbHistory) {
                                 effectiveHistory = dbHistory;
                                 sourceOfTruth = 'DATAVERSE';
