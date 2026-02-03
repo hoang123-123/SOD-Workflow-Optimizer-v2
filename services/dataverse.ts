@@ -406,7 +406,7 @@ export const fetchRequestHistory = async (requestId: string): Promise<any | null
         const token = await getAccessToken();
         const cleanId = requestId.replace(/[{}]/g, "");
         // UPDATED: Use crdfd_history
-        const url = `${DATAVERSE_CONFIG.ORG_URL}/api/data/v9.2/crdfd_order_requests(${cleanId})?$select=crdfd_history1`;
+        const url = `${DATAVERSE_CONFIG.ORG_URL}/api/data/v9.2/crdfd_order_requests(${cleanId})?$select=cr1bb_history1`;
 
         const response = await fetch(url, {
             headers: {
@@ -422,9 +422,9 @@ export const fetchRequestHistory = async (requestId: string): Promise<any | null
 
         const data = await response.json();
         // UPDATED: Check crdfd_history
-        if (data.crdfd_history1) {
+        if (data.cr1bb_history1) {
             try {
-                return JSON.parse(data.crdfd_history1);
+                return JSON.parse(data.cr1bb_history1);
             } catch (e) {
                 console.error("Failed to parse history JSON", e);
                 return null;
@@ -451,7 +451,7 @@ export const updateRequestHistory = async (requestId: string, appState: any, not
 
         // UPDATED: Save to crdfd_history AND crdfd_ghi_chu if provided
         const payload: any = {
-            "crdfd_history1": JSON.stringify(appState)
+            "cr1bb_history1": JSON.stringify(appState)
         };
 
         if (note) {
