@@ -11,6 +11,7 @@ export interface RuleExecutionParams {
     reason?: string;        // Cho hành động Warehouse Reject
     actualQty?: number;     // Cho hành động Warehouse Report
     requestedQty?: number;  // Cho hành động Warehouse Report
+    actualPickedQty?: number; // [NEW] Số lượng thực soạn
     discrepancyType?: 'INVENTORY' | 'CONVERSION_RATE'; // [NEW] Cho hành động Warehouse Report
     dept?: string;          // [NEW] Phòng ban thực hiện
     actor?: string;         // [NEW] Role người thực hiện
@@ -122,6 +123,7 @@ export const executeBusinessRule = async (
             updatedSOD.warehouseVerification = {
                 actualQty: params.actualQty || 0,
                 requestedQty: params.requestedQty || 0,
+                actualPickedQty: params.actualPickedQty || 0, // [NEW] Số lượng thực soạn
                 requestedNeedON: sod.qtyOrderRemainingON || 0, // [NEW] Lưu nhu cầu ON
                 requestedNeedWH: sod.qtyOrderRemainingWH || 0, // [NEW] Lưu nhu cầu WH
                 discrepancyType: params.discrepancyType,

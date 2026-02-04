@@ -50,6 +50,7 @@ export interface UrgentRequest {
 export interface WarehouseVerification {
   actualQty: number; // Số lượng thực tế kho nhập (Đơn vị Kho - WH)
   requestedQty: number; // Số lượng đơn kho xác nhận (Đơn vị Đơn - ON)
+  actualPickedQty?: number; // [NEW] Số lượng thực soạn (Đơn vị Kho - WH)
   requestedNeed?: number; // [DEPRECATED] Dùng requestedNeedON/WH thay thế
   requestedNeedON?: number; // [NEW] Nhu cầu đơn còn lại (ON) lúc Kho submit
   requestedNeedWH?: number; // [NEW] Nhu cầu đơn còn lại (WH) lúc Kho submit

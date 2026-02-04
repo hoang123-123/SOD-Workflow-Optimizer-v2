@@ -601,32 +601,17 @@ const App: React.FC = () => {
                     }
                 }
             } else if (currentRole === UserRole.WAREHOUSE) {
-                const isPlanSufficient = sod.statusFromPlan === 'Đủ';
-                const hasAnyUrgentRequest = !!sod.urgentRequest;
-                // [DEPRECATED] const hasSaleDecision = !!sod.saleDecision; // Không dùng vì WarehouseActionCard đã deprecated
+                // [FIX - 2026-02-04] Bỏ hết filter - hiển thị tất cả SOD khi chọn SO
+                // Theo yêu cầu: lúc chọn SO thì bỏ hết SOD bên trong hiện lên luôn đừng filter gì hết
                 const hasWarehouseDiscrepancy = !!sod.warehouseVerification;
 
-                // [FIX - 2026-02-03] Luôn hiển thị urgentRequest cho Kho, bất kể isRequestCreator
-                // Vì khi switch role từ Sale sang Kho trong cùng session, isRequestCreator vẫn = true
-                // nhưng Kho vẫn cần thấy request gấp mà Sale vừa tạo
                 if (hasWarehouseDiscrepancy) {
-                    // ƯU TIÊN 1: Nếu có sai lệch -> Đưa vào discrepancy
+                    // Nếu có sai lệch -> Đưa vào discrepancy
                     discrepancy.push(sod);
-                } else if (hasAnyUrgentRequest) {
-                    // ƯU TIÊN 2: Có yêu cầu gấp (bất kể PENDING hay đã xử lý)
-                    // [FIX] Bỏ check isRequestCreator để đảm bảo Kho luôn thấy request từ Sale
-                    shortage.push(sod);
-                } else if (!isRequestCreator) {
-                    // [MODE: XỬ LÝ] - Không có thêm action nào (đã xử lý hết ở trên)
-                    // Giữ trống để không hiện đơn không có action
                 } else {
-                    // [MODE: TẠO MỚI] - Kho khởi tạo yêu cầu mới
-                    if (isDue && isPlanSufficient) {
-                        // Đơn đủ hàng đến hạn
-                        sufficient.push(sod);
-                    }
+                    // Tất cả SOD còn lại -> hiển thị trong sufficient để Kho có thể báo cáo
+                    sufficient.push(sod);
                 }
-                // Dòng hàng 'Thiếu' (Shortage) mà Sale chưa xử lý sẽ ẩn hoàn toàn khỏi Kho theo yêu cầu
             } else {
                 // Admin or others
                 if (sod.status === SODStatus.SUFFICIENT) sufficient.push(sod);

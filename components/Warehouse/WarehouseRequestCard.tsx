@@ -43,7 +43,10 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
 
     // --- STATE CHO WAREHOUSE DISCOVERY (KIỂM ĐẾM) ---
     const [inputWarehouseQty, setInputWarehouseQty] = useState<string>('0');
-    const [inputOrderQty, setInputOrderQty] = useState<string>('0');
+    // [NEW] Patch giá trị từ qtyOrderRemainingON của SOD
+    const [inputOrderQty, setInputOrderQty] = useState<string>(String(sod.qtyOrderRemainingON || 0));
+    // [NEW] State cho Số lượng thực soạn
+    const [inputActualPickedQty, setInputActualPickedQty] = useState<string>('0');
     const [discrepancyType, setDiscrepancyType] = useState<'INVENTORY' | 'CONVERSION_RATE'>('INVENTORY');
 
     const handleWarehouseDiscoverySubmit = async () => {
@@ -51,6 +54,8 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
         try {
             const qtyAvailReal = parseFloat(inputWarehouseQty.replace(',', '.')) || 0;
             const qtyOrdReal = parseFloat(inputOrderQty.replace(',', '.')) || 0;
+            // [NEW] Số lượng thực soạn
+            const actualPickedQty = parseFloat(inputActualPickedQty.replace(',', '.')) || 0;
 
             const updatedSod = await executeBusinessRule(
                 'WH_REPORT',
@@ -59,6 +64,7 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                 {
                     actualQty: qtyAvailReal,
                     requestedQty: qtyOrdReal,
+                    actualPickedQty: actualPickedQty, // [NEW] Số lượng thực soạn
                     discrepancyType: discrepancyType,
                     dept: currentDepartment,
                     actor: currentRole
@@ -113,7 +119,7 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                     <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
                         <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Số lượng kho</div>
                         <div className="text-xl font-black text-gray-900">{v.actualQty} <span className="text-xs text-gray-400 font-bold uppercase">{sod.unitWarehouseName}</span></div>
@@ -121,6 +127,11 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                     <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
                         <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Số lượng đơn</div>
                         <div className="text-xl font-black text-gray-900">{v.requestedQty} <span className="text-xs text-gray-400 font-bold uppercase">{sod.unitOrderName}</span></div>
+                    </div>
+                    {/* [NEW] Cột Số lượng thực soạn */}
+                    <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                        <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">SL Thực soạn</div>
+                        <div className="text-xl font-black text-emerald-700">{v.actualPickedQty ?? '-'} <span className="text-xs text-emerald-500 font-bold uppercase">{sod.unitWarehouseName}</span></div>
                     </div>
                     <div className="p-4 bg-gray-100 rounded-2xl border border-gray-200">
                         <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Loại sai lệch</div>
@@ -237,6 +248,27 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                                     </div>
                                 </div>
 
+                                {/* [NEW] Input Số lượng thực soạn */}
+                                <div className="flex-1 w-full space-y-2.5">
+                                    <div className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 ml-1">
+                                        <CheckCircle2 className="w-3 h-3" /> SỐ LƯỢNG THỰC SOẠN
+                                    </div>
+                                    <div className="relative group">
+                                        <input
+                                            type="number" step="any"
+                                            className="w-full h-14 rounded-2xl border-2 border-emerald-200 bg-white px-5 text-xl font-black text-gray-900 focus:border-emerald-500 transition-all outline-none"
+                                            value={inputActualPickedQty}
+                                            onChange={(e) => setInputActualPickedQty(e.target.value)}
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                        <div className="absolute right-3 top-3 bottom-3 flex items-center">
+                                            <div className="h-full px-3 flex items-center bg-emerald-50 border border-emerald-200 rounded-xl text-[10px] font-black text-emerald-500 uppercase tracking-widest">
+                                                {sod.unitWarehouseName || 'SP'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* Select */}
                                 <div className="flex-1 w-full space-y-2.5">
                                     <div className="text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2 ml-1">
@@ -274,7 +306,8 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                                         <div className="text-xs font-black text-amber-800 mb-1.5 flex items-center gap-2">Lưu ý: Bạn đang gửi request:</div>
                                         <ul className="text-xs text-amber-900/60 font-medium space-y-1 list-disc pl-4 uppercase tracking-tight">
                                             <li>Tồn kho thực tế: <span className="text-amber-700 font-bold">{inputWarehouseQty} {sod.unitWarehouseName}</span></li>
-                                            <li>Số lượng đơn hàng: <span className="text-amber-700 font-bold">{inputOrderQty} {sod.unitOrderName}</span></li>
+                                            <li>SL còn lại theo đơn: <span className="text-amber-700 font-bold">{inputOrderQty} {sod.unitOrderName}</span></li>
+                                            <li>SL Thực soạn: <span className="text-emerald-700 font-bold">{inputActualPickedQty} {sod.unitWarehouseName}</span></li>
                                             <li>Nguyên nhân: <span className="text-amber-700 font-bold">{discrepancyType === 'INVENTORY' ? 'Sai lệch tồn kho vật lý' : 'Sai lệch tỷ lệ quy đổi'}</span></li>
                                         </ul>
                                     </div>

@@ -247,11 +247,8 @@ export const fetchSODsByOrder = async (orderId: string, soNumber: string, wareho
 
     const data = await fetchFromDataverse(query);
 
-    // FIX: Lọc client-side để đảm bảo chỉ lấy những dòng có kế hoạch (cả thiếu và đủ)
-    const filteredItems = data.value.filter((item: any) => {
-        const plans = item.crdfd_kehoachsoanhangdetail_onbanchitiet_crdfd_saleorderdetail;
-        return Array.isArray(plans) && plans.length > 0;
-    });
+    // [UPDATED] Bỏ filter - hiển thị tất cả SOD không cần lọc theo kế hoạch
+    const filteredItems = data.value;
 
     // [OPTIMIZED] Query bảng kho CHỈ với những sản phẩm có trong SOD
     // Thay vì query toàn bộ kho (10,000+ rows), chỉ query những productId cần thiết

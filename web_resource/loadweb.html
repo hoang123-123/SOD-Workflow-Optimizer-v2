@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>SOD Dialog Wrapper</title>
+    <style>
+        /* CSS Giao diện tối giản */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+        }
+
+        /* Iframe chiếm toàn bộ màn hình */
+        #contentFrame {
+            border: none;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Thông báo lỗi nếu thiếu ID */
+        #error-message {
+            display: none;
+            color: #d13438;
+            padding: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Hiệu ứng loading đơn giản */
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading">Đang tải ứng dụng...</div>
+    <div id="error-message">
+        Không tìm thấy ID bản ghi hoặc ID khách hàng. Vui lòng kiểm tra lại cấu
+        hình.
+    </div>
+    <iframe id="contentFrame" src="about:blank"></iframe>
+
+    <script>
+        const frame = document.getElementById("contentFrame");
+        const errorDiv = document.getElementById("error-message");
+        const loadingDiv = document.getElementById("loading");
+
+        // URL gốc của ứng dụng Web
+        const BASE_APP_URL =
+            //"https://sod-workflow-optimizer-v2-573735243623.us-west1.run.app"; //v2
+            "https://hoang123-123.github.io/SOD-Workflow-Optimizer-v2";
+
+        window.onload = function () {
+            try {
+                // 1. Lấy tham số từ URL (Xrm chuẩn cho Dynamics)
+                let params = {};
+                if (
+                    typeof Xrm !== "undefined" &&
+                    Xrm.Utility &&
+                    Xrm.Utility.getGlobalContext
+                ) {
+                    params = Xrm.Utility.getGlobalContext().getQueryStringParameters();
+                } else {
+                    const urlSearchParams = new URLSearchParams(window.location.search);
+                    params = Object.fromEntries(urlSearchParams.entries());
+                }
+
+                // 2. Bóc tách chuỗi 'data' để lấy các ID
+                const dataString = params.data;
+                let recordId = "";
+                let customerId = "";
+                let phongBan = "";
+                let saleID = "";
+                // [REMOVED] let historyValue = ""; - không cần nữa
+
+                if (dataString) {
+                    const searchParams = new URLSearchParams(dataString);
+                    recordId = searchParams.get("recordId");
+                    customerId = searchParams.get("customerId");
+                    phongBan = decodeURIComponent(searchParams.get("phongBan") || "");
+                    saleID = searchParams.get("saleID");
+                    // [REMOVED] historyValue - App sẽ tự fetch từ DB bằng recordId
+                }
+
+                // 3. Kiểm tra dữ liệu và tải App
+                if (recordId && customerId) {
+                    // Ghép URL hoàn chỉnh - [UPDATED] Bỏ historyValue để tránh Request Too Long
+                    const finalUrl = `${BASE_APP_URL}?recordId=${recordId}&customerId=${customerId}&phongBan=${encodeURIComponent(phongBan)}&saleID=${saleID}`;
+                    frame.src = finalUrl;
+                    // Ẩn loading khi iframe bắt đầu tải
+                    frame.onload = function () {
+                        loadingDiv.style.display = "none";
+                    };
+                } else {
+                    loadingDiv.style.display = "none";
+                    errorDiv.style.display = "block";
+                }
+            } catch (e) {
+                loadingDiv.style.display = "none";
+                errorDiv.innerText = "Có lỗi xảy ra khi khởi tạo ứng dụng.";
+                errorDiv.style.display = "block";
+            }
+        };
+    </script>
+</body>
+
+</html>
