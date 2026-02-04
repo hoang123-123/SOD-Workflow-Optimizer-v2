@@ -12,7 +12,7 @@ export interface RuleExecutionParams {
     actualQty?: number;     // Cho hành động Warehouse Report
     requestedQty?: number;  // Cho hành động Warehouse Report
     actualPickedQty?: number; // [NEW] Số lượng thực soạn
-    discrepancyType?: 'INVENTORY' | 'CONVERSION_RATE'; // [NEW] Cho hành động Warehouse Report
+    discrepancyType?: 'INVENTORY' | 'CONVERSION_RATE' | 'SALE_REQUEST' | 'WAREHOUSE_SPEC'; // [UPDATED] Thêm loại sai lệch
     dept?: string;          // [NEW] Phòng ban thực hiện
     actor?: string;         // [NEW] Role người thực hiện
     isFactory?: boolean;    // [NEW] Khách hàng là Nhà máy?

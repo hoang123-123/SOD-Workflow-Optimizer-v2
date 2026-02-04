@@ -55,7 +55,7 @@ export interface WarehouseVerification {
   requestedNeedON?: number; // [NEW] Nhu cầu đơn còn lại (ON) lúc Kho submit
   requestedNeedWH?: number; // [NEW] Nhu cầu đơn còn lại (WH) lúc Kho submit
   timestamp: string;
-  discrepancyType?: 'INVENTORY' | 'CONVERSION_RATE'; // [NEW] Loại sai lệch
+  discrepancyType?: 'INVENTORY' | 'CONVERSION_RATE' | 'SALE_REQUEST' | 'WAREHOUSE_SPEC'; // [UPDATED] Thêm loại sai lệch
   createdByDept?: string; // [NEW] Phòng ban tạo request (VD: Kho Miền Trung)
   actor?: string; // [NEW] Role người tạo
 }

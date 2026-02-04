@@ -131,7 +131,7 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                     {/* [NEW] Cột Số lượng thực soạn */}
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
                         <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">SL Thực soạn</div>
-                        <div className="text-xl font-black text-emerald-700">{v.actualPickedQty ?? '-'} <span className="text-xs text-emerald-500 font-bold uppercase">{sod.unitWarehouseName}</span></div>
+                        <div className="text-xl font-black text-emerald-700">{v.actualPickedQty ?? '-'} <span className="text-xs text-emerald-500 font-bold uppercase">{sod.unitOrderName}</span></div>
                     </div>
                     <div className="p-4 bg-gray-100 rounded-2xl border border-gray-200">
                         <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Loại sai lệch</div>
@@ -265,7 +265,7 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                                         />
                                         <div className="absolute right-3 top-3 bottom-3 flex items-center">
                                             <div className="h-full px-3 flex items-center bg-emerald-50 border border-emerald-200 rounded-xl text-[10px] font-black text-emerald-500 uppercase tracking-widest">
-                                                {sod.unitWarehouseName || 'SP'}
+                                                {sod.unitOrderName || 'SP'}
                                             </div>
                                         </div>
                                     </div>

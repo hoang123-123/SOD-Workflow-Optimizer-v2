@@ -211,6 +211,9 @@ export const buildWarehouseReportPayload = (sod: SOD, recordId: string): Notific
     // requested: Khả năng đáp ứng đơn (Đơn vị đơn hàng)
     const requested = sod.warehouseVerification?.requestedQty || 0;
 
+    // [NEW] actualPickedQty: Số lượng thực soạn (Đơn vị đơn hàng)
+    const actualPicked = sod.warehouseVerification?.actualPickedQty || 0;
+
     // Shortage: Tính theo đơn vị đơn hàng
     const shortage = Math.max(0, N - requested);
 
@@ -220,11 +223,14 @@ export const buildWarehouseReportPayload = (sod: SOD, recordId: string): Notific
         reasonText = "(Lệch quy đổi)";
     } else if (sod.warehouseVerification?.discrepancyType === 'INVENTORY') {
         reasonText = "(Lệch tồn kho)";
+    } else if (sod.warehouseVerification?.discrepancyType === 'SALE_REQUEST') {
+        reasonText = "(Soạn theo yêu cầu Sale)";
+    } else if (sod.warehouseVerification?.discrepancyType === 'WAREHOUSE_SPEC') {
+        reasonText = "(Quy cách bán của Kho)";
     }
 
-    // Format tin nhắn: "Thực tế đáp ứng 5/10 Cái (4/10 Cái tại kho)."
-    // Giúp Sale thấy rõ tỷ lệ đáp ứng trên tổng nhu cầu ở cả 2 đơn vị.
-    const message = `⚠ KHO REQUEST: Thực tế đáp ứng ${requested}/${N} ${unit} (${actual}/${N_wh} ${unitWarehouse} tại kho). Thiếu ${shortage} ${unit}. ${reasonText}`;
+    // Format tin nhắn: "Thực tế đáp ứng 5/10 Cái (4/10 Cái tại kho). Thực soạn: 5 Cái"
+    const message = `⚠ KHO REQUEST: Thực tế đáp ứng ${requested}/${N} ${unit} (${actual}/${N_wh} ${unitWarehouse} tại kho). Thực soạn: ${actualPicked} ${unit}. ${reasonText}`;
 
     return {
         Type: "WAREHOUSE_TO_SALE",
@@ -234,8 +240,9 @@ export const buildWarehouseReportPayload = (sod: SOD, recordId: string): Notific
         Sku: sod.product.sku,
         Message: message,
         Details: {
-            ThucTeKiemDem: actual,    // Kho
-            KhaNangDapUng: requested, // Đơn
+            ThucTeKiemDem: actual,       // Số lượng kho (WH unit)
+            KhaNangDapUng: requested,    // Số lượng đơn (ON unit)
+            SoLuongThucSoan: actualPicked, // [NEW] Số lượng thực soạn (ON unit)
             TongNhuCauDon: N,
             TongNhuCauKho: N_wh,
             ChenhLech: shortage,
