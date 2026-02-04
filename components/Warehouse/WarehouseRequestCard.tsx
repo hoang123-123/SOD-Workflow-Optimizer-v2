@@ -47,7 +47,7 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
     const [inputOrderQty, setInputOrderQty] = useState<string>(String(sod.qtyOrderRemainingON || 0));
     // [NEW] State cho Số lượng thực soạn
     const [inputActualPickedQty, setInputActualPickedQty] = useState<string>('0');
-    const [discrepancyType, setDiscrepancyType] = useState<'INVENTORY' | 'CONVERSION_RATE'>('INVENTORY');
+    const [discrepancyType, setDiscrepancyType] = useState<'INVENTORY' | 'CONVERSION_RATE' | 'SALE_REQUEST' | 'WAREHOUSE_SPEC'>('INVENTORY');
 
     const handleWarehouseDiscoverySubmit = async () => {
         setIsNotifying(true);
@@ -136,7 +136,7 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                     <div className="p-4 bg-gray-100 rounded-2xl border border-gray-200">
                         <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Loại sai lệch</div>
                         <div className="text-sm font-black text-gray-900 uppercase">
-                            {v.discrepancyType === 'INVENTORY' ? 'Lệch tồn kho vật lý' : 'Lệch tỷ lệ quy đổi'}
+                            {v.discrepancyType === 'INVENTORY' ? 'Lệch tồn kho vật lý' : v.discrepancyType === 'CONVERSION_RATE' ? 'Lệch tỷ lệ quy đổi' : v.discrepancyType === 'SALE_REQUEST' ? 'Soạn theo yêu cầu của sale' : 'Soạn theo quy cách bán của kho'}
                         </div>
                     </div>
                 </div>
@@ -180,6 +180,8 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                                 </span>
                             )}
                         </div>
+                        {/* [NEW] Hiển thị tên sản phẩm */}
+                        <div className="text-xs text-gray-600 mt-1 truncate font-medium">{sod.product.name}</div>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -282,6 +284,8 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                                         >
                                             <option value="INVENTORY">Lệch tồn kho vật lý</option>
                                             <option value="CONVERSION_RATE">Lệch tỷ lệ quy đổi</option>
+                                            <option value="SALE_REQUEST">Soạn theo yêu cầu của sale</option>
+                                            <option value="WAREHOUSE_SPEC">Soạn theo quy cách bán của kho</option>
                                         </select>
                                         <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-600 pointer-events-none" />
                                     </div>
@@ -308,7 +312,7 @@ export const WarehouseRequestCard: React.FC<WarehouseRequestCardProps> = ({
                                             <li>Tồn kho thực tế: <span className="text-amber-700 font-bold">{inputWarehouseQty} {sod.unitWarehouseName}</span></li>
                                             <li>SL còn lại theo đơn: <span className="text-amber-700 font-bold">{inputOrderQty} {sod.unitOrderName}</span></li>
                                             <li>SL Thực soạn: <span className="text-emerald-700 font-bold">{inputActualPickedQty} {sod.unitWarehouseName}</span></li>
-                                            <li>Nguyên nhân: <span className="text-amber-700 font-bold">{discrepancyType === 'INVENTORY' ? 'Sai lệch tồn kho vật lý' : 'Sai lệch tỷ lệ quy đổi'}</span></li>
+                                            <li>Nguyên nhân: <span className="text-amber-700 font-bold">{discrepancyType === 'INVENTORY' ? 'Sai lệch tồn kho vật lý' : discrepancyType === 'CONVERSION_RATE' ? 'Sai lệch tỷ lệ quy đổi' : discrepancyType === 'SALE_REQUEST' ? 'Soạn theo yêu cầu của sale' : 'Soạn theo quy cách bán của kho'}</span></li>
                                         </ul>
                                     </div>
                                 </div>
