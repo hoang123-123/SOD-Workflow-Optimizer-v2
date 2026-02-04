@@ -8,12 +8,14 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+**/node_modules
 dist
 dist-ssr
 *.local
 
-SOD-Standalone-App
-
+# SOD-Standalone-App: Track folder nhưng ignore node_modules bên trong
+!SOD-Standalone-App
+SOD-Standalone-App/node_modules
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
