@@ -578,16 +578,18 @@ const App: React.FC = () => {
 
                 if (!isRequestCreator) {
                     // [MODE: XỬ LÝ/XEM LẠI HISTORY]
-                    // Hiển thị nếu có bất kỳ tác động nào trong history: Sai lệch kho OR Quyết định của Sale OR Yêu cầu gấp
+                    // [FIX - 2026-02-05] Hiển thị TẤT CẢ SOD trong history, không chỉ những SOD có saleDecision
                     if (hasWarehouseDiscrepancy) {
                         discrepancy.push(sod);
-                    } else if (hasSaleDecision || hasUrgentRequest) {
-                        // Quyết định chốt hàng của Sale hoặc Yêu cầu gấp -> cho vào list tương ứng để hiển thị
-                        if (isUrgentPending || hasUrgentRequest) {
-                            sufficient.push(sod);
-                        } else {
-                            shortage.push(sod);
-                        }
+                    } else if (isUrgentPending || hasUrgentRequest) {
+                        // Đơn gấp luôn hiển thị ở sufficient
+                        sufficient.push(sod);
+                    } else if (isShortageStatus || isShortageFromPlan || hasSaleDecision) {
+                        // [FIX] Hiển thị TẤT CẢ đơn thiếu hàng, kể cả chưa có saleDecision
+                        shortage.push(sod);
+                    } else if (isFuture && isUrgentPotential) {
+                        // Đơn tương lai có khả năng gấp
+                        sufficient.push(sod);
                     }
                 } else {
                     // [MODE: TẠO REQUEST] - Load data tự động từ hệ thống
