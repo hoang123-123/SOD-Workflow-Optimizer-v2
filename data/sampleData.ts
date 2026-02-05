@@ -85,7 +85,9 @@ export const DEMO_TEST_CASES: DemoTestCase[] = [
         }
     },
 
-    // ============ KHO GỬI REQUEST (Báo sai lệch) ============
+    // ============ KHO GỬI REQUEST - Báo sai lệch tồn kho (Type: WAREHOUSE_TO_SALE) ============
+    // DiscrepancyType = INVENTORY hoặc CONVERSION_RATE
+    // Khác với WAREHOUSE_REQUEST_CORRECTION (Kho yêu cầu sửa số)
     {
         id: 'WH_REQ_FACTORY_1',
         name: '[Kho→Sale] Sai lệch - Nhà máy',
@@ -224,6 +226,88 @@ export const DEMO_TEST_CASES: DemoTestCase[] = [
                 action: 'SHIP_AND_CLOSE',
                 quantity: 15,
                 timestamp: new Date().toISOString()
+            }
+        }
+    },
+
+    // ============ KHO REQUEST SỬA SỐ (Type: WAREHOUSE_REQUEST_CORRECTION) ============
+    // Khác với WAREHOUSE_TO_SALE thông thường (báo sai lệch tồn kho INVENTORY)
+    // Case này là Kho yêu cầu Sale sửa số trên đơn - SALE_REQUEST discrepancyType
+    {
+        id: 'WH_SALE_REQUEST_1',
+        name: '[Kho] Request sửa số - WAREHOUSE_REQUEST_CORRECTION',
+        description: 'Kho yêu cầu Sale sửa số lượng đặt hàng. Type = WAREHOUSE_REQUEST_CORRECTION (khác WAREHOUSE_TO_SALE). DiscrepancyType = SALE_REQUEST.',
+        customerIndustryType: 0,
+        sod: {
+            id: '9604bdf1-0800-f111-8406-0022485634c8',
+            detailName: 'SO_10203621_02-02-2026_GL- Cửa Hàng Tiến Lộc ( TX An Khê )_ĐH 2/2 kim khí_VAT/2850192',
+            soNumber: 'SO_10203621_02-02-2026_GL- Cửa Hàng Tiến Lộc ( TX An Khê )_ĐH 2/2 kim khí_VAT',
+            product: {
+                sku: 'SP-010365',
+                name: 'Lưới che nắng (lưới lan) 2mx50m (xấp)'
+            },
+            qtyOrdered: 24,
+            qtyDelivered: 0,
+            qtyAvailable: 24,
+            qtyOrderRemainingON: 24,
+            qtyOrderRemainingWH: 24,
+            deliveryCount: 0,
+            conversionRate: 1,
+            unitOrderName: 'Kg',
+            unitWarehouseName: 'Kg',
+            status: SODStatus.SHORTAGE_PENDING_SALE,
+            statusFromPlan: 'Đủ',
+            expectedDeliveryDate: today,
+            isNotificationSent: true,
+            urgentRequest: {
+                status: 'ACCEPTED',
+                timestamp: new Date().toISOString(),
+                requestedBy: 'Sale Tiến Lộc'
+            },
+            warehouseVerification: {
+                actualQty: 186.64,
+                requestedQty: 24,
+                actualPickedQty: 20.1,
+                requestedNeedON: 24,
+                requestedNeedWH: 24,
+                discrepancyType: 'SALE_REQUEST',
+                createdByDept: 'Fullfillment',
+                actor: 'WAREHOUSE',
+                timestamp: new Date().toISOString()
+            }
+        }
+    },
+
+    // ============ ĐƠN GẤP - NHIỀU SODS PENDING ============
+    {
+        id: 'URGENT_MULTI_SODS_1',
+        name: '[Đơn gấp] Nhiều sản phẩm Pending',
+        description: 'Đơn hàng kim khí với nhiều SODs. Sale đã yêu cầu giao gấp cho tất cả sản phẩm, Kho cần xử lý.',
+        customerIndustryType: 0,
+        sod: {
+            id: '5e2d6861-a800-f111-8406-000d3aa21281',
+            detailName: 'SO_10203736_03-02-2026_PY- CH LAM TUYỀN (Tây Hòa)_ĐH ngày 02.02 kim khí/2850750',
+            soNumber: 'SO_10203736_03-02-2026_PY- CH LAM TUYỀN (Tây Hòa)_ĐH ngày 02.02 kim khí',
+            product: {
+                sku: 'SP-010720',
+                name: 'Tán XD M12 (ren 1.25) thép đen'
+            },
+            qtyOrdered: 20,
+            qtyDelivered: 0,
+            qtyAvailable: 20,
+            qtyOrderRemainingON: 20,
+            qtyOrderRemainingWH: 20,
+            deliveryCount: 0,
+            conversionRate: 1,
+            unitOrderName: 'Con',
+            unitWarehouseName: 'Con',
+            status: SODStatus.SUFFICIENT,
+            statusFromPlan: 'Đủ',
+            expectedDeliveryDate: today,
+            urgentRequest: {
+                status: 'PENDING',
+                timestamp: new Date().toISOString(),
+                requestedBy: 'Sale Lam Tuyền'
             }
         }
     }

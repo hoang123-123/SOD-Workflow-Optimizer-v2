@@ -200,7 +200,9 @@ export const buildSourceToSalePayload = (sod: SOD, recordId: string): Notificati
 };
 
 /**
- * TEMPLATE 5: WAREHOUSE -> SALE (Báo cáo thiếu hụt thực tế)
+ * TEMPLATE 5A: WAREHOUSE -> SALE (Báo cáo sai lệch tồn kho)
+ * Type: WAREHOUSE_TO_SALE
+ * DiscrepancyType: INVENTORY, CONVERSION_RATE, WAREHOUSE_SPEC
  */
 export const buildWarehouseReportPayload = (sod: SOD, recordId: string): NotificationPayload => {
     const { N, unit, unitWarehouse, N_wh } = getIndices(sod);
@@ -217,23 +219,40 @@ export const buildWarehouseReportPayload = (sod: SOD, recordId: string): Notific
     // Shortage: Tính theo đơn vị đơn hàng
     const shortage = Math.max(0, N - requested);
 
+    const discrepancyType = sod.warehouseVerification?.discrepancyType;
+
     // [NEW] Lý do sai lệch (Text hiển thị)
     let reasonText = "";
-    if (sod.warehouseVerification?.discrepancyType === 'CONVERSION_RATE') {
+    if (discrepancyType === 'CONVERSION_RATE') {
         reasonText = "(Lệch quy đổi)";
-    } else if (sod.warehouseVerification?.discrepancyType === 'INVENTORY') {
+    } else if (discrepancyType === 'INVENTORY') {
         reasonText = "(Lệch tồn kho)";
-    } else if (sod.warehouseVerification?.discrepancyType === 'SALE_REQUEST') {
-        reasonText = "(Soạn theo yêu cầu Sale)";
-    } else if (sod.warehouseVerification?.discrepancyType === 'WAREHOUSE_SPEC') {
+    } else if (discrepancyType === 'SALE_REQUEST') {
+        reasonText = "(Yêu cầu sửa số)";
+    } else if (discrepancyType === 'WAREHOUSE_SPEC') {
         reasonText = "(Quy cách bán của Kho)";
     }
 
-    // Format tin nhắn: "Thực tế đáp ứng 5/10 Cái (4/10 Cái tại kho). Thực soạn: 5 Cái"
-    const message = `⚠ KHO REQUEST: Thực tế đáp ứng ${requested}/${N} ${unit} (${actual}/${N_wh} ${unitWarehouse} tại kho). Thực soạn: ${actualPicked} ${unit}. ${reasonText}`;
+    // [NEW] Phân biệt 2 loại Type:
+    // - WAREHOUSE_REQUEST_CORRECTION: Kho yêu cầu Sale sửa số lượng trên đơn (SALE_REQUEST)
+    // - WAREHOUSE_TO_SALE: Kho báo lệch tồn kho vật lý (INVENTORY, CONVERSION_RATE, WAREHOUSE_SPEC)
+    const notificationType: NotificationPayload["Type"] =
+        discrepancyType === 'SALE_REQUEST'
+            ? "WAREHOUSE_REQUEST_CORRECTION"
+            : "WAREHOUSE_TO_SALE";
+
+    // Format tin nhắn khác nhau theo loại
+    let message = "";
+    if (discrepancyType === 'SALE_REQUEST') {
+        // Kho yêu cầu sửa số - Message rõ ràng hơn
+        message = `📝 KHO YÊU CẦU SỬA SỐ: Yêu cầu ${requested}/${N} ${unit}. Thực soạn: ${actualPicked} ${unit}. ${reasonText}`;
+    } else {
+        // Báo lệch kho thông thường
+        message = `⚠ KHO BÁO LỆCH: Thực tế đáp ứng ${requested}/${N} ${unit} (${actual}/${N_wh} ${unitWarehouse} tại kho). Thực soạn: ${actualPicked} ${unit}. ${reasonText}`;
+    }
 
     return {
-        Type: "WAREHOUSE_TO_SALE",
+        Type: notificationType,
         SodId: sod.id,
         RecordId: recordId,
         SodName: sod.detailName,
@@ -246,7 +265,7 @@ export const buildWarehouseReportPayload = (sod: SOD, recordId: string): Notific
             TongNhuCauDon: N,
             TongNhuCauKho: N_wh,
             ChenhLech: shortage,
-            LoaiSaiLech: sod.warehouseVerification?.discrepancyType || 'UNKNOWN'
+            LoaiSaiLech: discrepancyType || 'UNKNOWN'
         },
         Timestamp: new Date().toISOString()
     };

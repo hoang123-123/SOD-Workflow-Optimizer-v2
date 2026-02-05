@@ -133,7 +133,8 @@ export interface NotificationPayload {
   | "SALE_URGENT_TO_WH"
   | "WH_URGENT_ACCEPTED"
   | "WH_URGENT_REJECTED"
-  | "SALE_TO_WAREHOUSE_REJECT_REPORT";
+  | "SALE_TO_WAREHOUSE_REJECT_REPORT"
+  | "WAREHOUSE_REQUEST_CORRECTION";  // [NEW] Kho yêu cầu sửa số lượng
 
   "SodId": string;
   "RecordId": string;

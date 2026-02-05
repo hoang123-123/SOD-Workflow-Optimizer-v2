@@ -52,12 +52,17 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
     const unitOrder = sod.unitOrderName || 'SP';
     const isFactory = Number(customerIndustryType) === INDUSTRY_FACTORY;
 
-    // Xác định loại sai lệch
+    // [UPDATED] Xác định loại sai lệch - Phân biệt rõ ràng 2 loại
     const getDiscrepancyLabel = () => {
         if (discrepancyType === 'CONVERSION_RATE') return 'Lệch quy đổi';
         if (discrepancyType === 'INVENTORY') return 'Lệch tồn kho';
+        if (discrepancyType === 'SALE_REQUEST') return 'Yêu cầu sửa số';
+        if (discrepancyType === 'WAREHOUSE_SPEC') return 'Quy cách kho';
         return 'Sai lệch';
     };
+
+    // [NEW] Check nếu là Kho yêu cầu sửa số (khác với báo lệch kho)
+    const isRequestCorrection = discrepancyType === 'SALE_REQUEST';
 
     // --- HANDLER: XÁC NHẬN (GIAO) ---
     const handleAccept = async () => {
@@ -247,9 +252,9 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
             {isExpanded && (
                 <div className="px-3 py-4 border-t border-gray-100 bg-gray-50/50 space-y-3">
                     <div className="bg-white rounded-lg p-3 border border-gray-100">
-                        <h4 className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                        <h4 className={`text-[10px] font-bold uppercase tracking-wide mb-3 flex items-center gap-1.5 ${isRequestCorrection ? 'text-blue-600' : 'text-indigo-600'}`}>
                             <Package className="w-3.5 h-3.5" />
-                            Chi tiết báo cáo từ Kho
+                            {isRequestCorrection ? '📝 Kho yêu cầu sửa số lượng' : '⚠️ Kho báo lệch tồn kho'}
                         </h4>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -295,9 +300,13 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
                         </div>
                     </div>
 
-                    {/* Hướng dẫn */}
-                    <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg text-[10px] text-amber-700 font-medium">
-                        <strong>💡</strong> Kho báo số liệu thực tế khác hệ thống. Click <strong>GIAO</strong> để xuất theo số Kho báo, hoặc <strong>KIỂM LẠI</strong> để yêu cầu kiểm tra.
+                    {/* Hướng dẫn - Khác nhau theo loại */}
+                    <div className={`p-3 rounded-lg text-[10px] font-medium ${isRequestCorrection ? 'bg-blue-50 border border-blue-100 text-blue-700' : 'bg-amber-50 border border-amber-100 text-amber-700'}`}>
+                        {isRequestCorrection ? (
+                            <><strong>📝</strong> Kho yêu cầu sửa số lượng trên đơn hàng. Click <strong>GIAO</strong> để đồng ý sửa số, hoặc <strong>KIỂM LẠI</strong> để yêu cầu Kho kiểm tra lại.</>
+                        ) : (
+                            <><strong>⚠️</strong> Kho báo số liệu thực tế khác hệ thống (lệch tồn kho). Click <strong>GIAO</strong> để xuất theo số Kho báo, hoặc <strong>KIỂM LẠI</strong> để yêu cầu kiểm tra.</>
+                        )}
                     </div>
                 </div>
             )}

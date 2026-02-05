@@ -538,7 +538,7 @@ export const SODCard: React.FC<SODCardProps> = ({ sod, currentRole, onUpdate, on
                                             <div className="flex-1 p-3 bg-white rounded-lg border border-gray-200">
                                                 <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Nguyên nhân sai lệch</div>
                                                 <div className="text-sm font-bold text-indigo-600">
-                                                    {sod.warehouseVerification.discrepancyType === 'CONVERSION_RATE' ? 'Sai lệch tỷ lệ quy đổi (Kg/Pcs)' : 'Thiếu hụt tồn kho vật lý'}
+                                                    {sod.warehouseVerification.discrepancyType === 'CONVERSION_RATE' ? '⚠️ Lệch tỷ lệ quy đổi' : sod.warehouseVerification.discrepancyType === 'SALE_REQUEST' ? '📝 Yêu cầu sửa số' : sod.warehouseVerification.discrepancyType === 'WAREHOUSE_SPEC' ? '📦 Quy cách kho' : '⚠️ Lệch tồn kho vật lý'}
                                                 </div>
                                             </div>
                                         </div>
@@ -587,8 +587,10 @@ export const SODCard: React.FC<SODCardProps> = ({ sod, currentRole, onUpdate, on
                                                 <label className="block text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-2 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" /> Nguyên nhân</label>
                                                 <div className="relative group">
                                                     <select className="block w-full rounded-lg border-gray-300 bg-white text-gray-900 font-bold shadow-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 sm:text-sm px-4 py-3 border transition-all cursor-pointer appearance-none" value={discrepancyType} onChange={(e) => setDiscrepancyType(e.target.value as any)}>
-                                                        <option value="INVENTORY">Sai lệch tồn kho</option>
-                                                        <option value="CONVERSION_RATE">Sai lệch tỷ lệ quy đổi</option>
+                                                        <option value="INVENTORY">⚠️ Lệch tồn kho</option>
+                                                        <option value="CONVERSION_RATE">⚠️ Lệch tỷ lệ quy đổi</option>
+                                                        <option value="SALE_REQUEST">📝 Yêu cầu Sale sửa số</option>
+                                                        <option value="WAREHOUSE_SPEC">📦 Soạn theo quy cách kho</option>
                                                     </select>
                                                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-amber-600"><ChevronDown className="w-4 h-4" /></div>
                                                 </div>
