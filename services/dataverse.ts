@@ -175,7 +175,7 @@ export const fetchOrdersByCustomer = async (customerId: string): Promise<SalesOr
     const cleanId = customerId.replace(/[{}]/g, "");
     // Add cr1bb_hinhthucgiaohang and crdfd_soonhangchitiet (Rollup field for SOD count) to select
     // Lưu ý: crdfd_soonhangchitiet là Rollup field, có thể bị chậm (12h update).
-    const query = `crdfd_sale_orders?$select=crdfd_sale_orderid,crdfd_name,cr1bb_hinhthucgiaohang,crdfd_soonhangchitiet,_cr1bb_vitrikho_value &$filter=_crdfd_khachhang_value eq ${cleanId} and crdfd_trangthaigiaonhan1 ne ${DATAVERSE_STATUS_MAP.DELIVERED} and statecode eq 0`;
+    const query = `crdfd_sale_orders?$select=crdfd_sale_orderid,crdfd_name,cr1bb_hinhthucgiaohang,crdfd_soonhangchitiet,_cr1bb_vitrikho_value,createdon &$filter=_crdfd_khachhang_value eq ${cleanId} and crdfd_trangthaigiaonhan1 ne ${DATAVERSE_STATUS_MAP.DELIVERED} and statecode eq 0&$orderby=createdon desc`;
 
     const data = await fetchFromDataverse(query);
     const ordersRaw = data.value;
@@ -243,7 +243,7 @@ export const fetchSODsByOrder = async (orderId: string, soNumber: string, wareho
     const expandUnits = `crdfd_onvi($select=crdfd_giatrichuyenoi,crdfd_onvichuan)`;
 
     // [UPDATED] Thêm _crdfd_sanpham_value để lấy ID sản phẩm dùng cho query bảng kho
-    const query = `crdfd_saleorderdetails?$select=crdfd_name, crdfd_saleorderdetailid, crdfd_soluongconlaitheokhonew,crdfd_ngaygiaodukientonghop,crdfd_tensanphamtext,crdfd_masanpham, crdfd_onvionhang, crdfd_vitrikho, crdfd_ton_kho_ly_thuyet_bo_mua, crdfd_productnum, _crdfd_sanpham_value&$filter=statecode eq 0 and _crdfd_socode_value eq ${cleanId} and crdfd_trangthaionhang1 ne ${DATAVERSE_STATUS_MAP.DELIVERED}&$expand=${expandAllActivePlans},${expandUnits}`;
+    const query = `crdfd_saleorderdetails?$select=crdfd_name, crdfd_saleorderdetailid, crdfd_soluongconlaitheokhonew,crdfd_ngaygiaodukientonghop,crdfd_tensanphamtext,crdfd_masanpham, crdfd_onvionhang, crdfd_vitrikho, crdfd_ton_kho_ly_thuyet_bo_mua, crdfd_productnum, _crdfd_sanpham_value&$filter=statecode eq 0 and _crdfd_socode_value eq ${cleanId} and crdfd_trangthaionhang1 ne ${DATAVERSE_STATUS_MAP.DELIVERED}&$expand=${expandAllActivePlans},${expandUnits}&$orderby=crdfd_ngaygiaodukientonghop desc`;
 
     const data = await fetchFromDataverse(query);
 
