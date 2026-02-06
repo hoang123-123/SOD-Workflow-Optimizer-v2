@@ -13,7 +13,9 @@ export type TriggerActionType =
     | 'TRIGGER_SALE_URGENT_REQUEST' // Sale yêu cầu đơn gấp
     | 'TRIGGER_WH_ACCEPT_URGENT'    // Kho chấp nhận đơn gấp
     | 'TRIGGER_WH_REJECT_URGENT'    // Kho từ chối đơn gấp
-    | 'TRIGGER_SALE_REJECT_REPORT'; // [NEW] Sale từ chối báo cáo sai lệch (không hủy đơn)
+    | 'TRIGGER_SALE_REJECT_REPORT'  // [NEW] Sale từ chối báo cáo sai lệch (không hủy đơn)
+    | 'TRIGGER_SALE_ACCEPT_CORRECTION'  // [NEW] Sale đồng ý sửa số -> gửi Automate
+    | 'TRIGGER_SALE_REJECT_CORRECTION'; // [NEW] Sale từ chối sửa số -> Kho kiểm lại
 
 export interface BusinessRule {
     id: string;
@@ -142,8 +144,55 @@ export const BUSINESS_RULES: BusinessRule[] = [
             nextAction: 'Kho kiểm tra lại tồn kho.'
         }
     },
+    // --- CASE A5: ĐỒNG Ý SỬA SỐ (CHỈ CHO DISCREPANCY TYPE = SALE_REQUEST) ---
+    {
+        id: 'A5',
+        group: 'CASE A (Lần đầu K=1)',
+        name: 'Đồng ý sửa số lượng',
+        description: 'Sale đồng ý yêu cầu sửa số từ Kho. Power Automate sẽ cập nhật số lượng đơn.',
+        actor: UserRole.SALE,
+        input: {
+            actionName: 'Xác nhận sửa số',
+            condition: 'DeliveryCount = 0 & discrepancyType = SALE_REQUEST'
+        },
+        process: {
+            triggerAction: 'TRIGGER_SALE_ACCEPT_CORRECTION',
+            apiTrigger: 'notifyWarehouseOnSaleAcceptCorrection',
+            notificationTag: 'SALE_ACCEPT_CORRECTION',
+            nextStatus: SODStatus.RESOLVED,
+            logicDesc: 'Gửi Automate sửa số lượng trên đơn hàng.'
+        },
+        output: {
+            targetRole: UserRole.WAREHOUSE,
+            uiDescription: 'Kho nhận thông báo Sale đã đồng ý sửa số.',
+            nextAction: 'Automate cập nhật số lượng.'
+        }
+    },
+    // --- CASE A6: TỪ CHỐI SỬA SỐ (CHỈ CHO DISCREPANCY TYPE = SALE_REQUEST) ---
+    {
+        id: 'A6',
+        group: 'CASE A (Lần đầu K=1)',
+        name: 'Từ chối sửa số lượng',
+        description: 'Sale từ chối yêu cầu sửa số từ Kho. Kho cần kiểm tra lại.',
+        actor: UserRole.SALE,
+        input: {
+            actionName: 'Từ chối sửa số',
+            condition: 'DeliveryCount = 0 & discrepancyType = SALE_REQUEST'
+        },
+        process: {
+            triggerAction: 'TRIGGER_SALE_REJECT_CORRECTION',
+            apiTrigger: 'notifyWarehouseOnSaleRejectCorrection',
+            notificationTag: 'SALE_REJECT_CORRECTION',
+            nextStatus: 'KEEP_CURRENT',
+            logicDesc: 'Gửi thông báo từ chối. Kho kiểm tra lại.'
+        },
+        output: {
+            targetRole: UserRole.WAREHOUSE,
+            uiDescription: 'Kho nhận thông báo Sale từ chối sửa số.',
+            nextAction: 'Kho kiểm tra lại và gửi request mới nếu cần.'
+        }
+    },
 
-    // --- CASE B1: GIAO TIẾP & CHỐT (Giao lần 2 - K>1) ---
     {
         id: 'B1',
         group: 'CASE B (Lần sau K>1)',
@@ -237,6 +286,54 @@ export const BUSINESS_RULES: BusinessRule[] = [
             targetRole: UserRole.WAREHOUSE,
             uiDescription: 'Kho nhận thông báo từ chối báo cáo.',
             nextAction: 'Kho kiểm tra lại tồn kho.'
+        }
+    },
+    // --- CASE B5: ĐỒNG Ý SỬA SỐ (CHỈ CHO DISCREPANCY TYPE = SALE_REQUEST) ---
+    {
+        id: 'B5',
+        group: 'CASE B (Lần sau K>1)',
+        name: 'Đồng ý sửa số lượng',
+        description: 'Sale đồng ý yêu cầu sửa số từ Kho. Power Automate sẽ cập nhật số lượng đơn.',
+        actor: UserRole.SALE,
+        input: {
+            actionName: 'Xác nhận sửa số',
+            condition: 'DeliveryCount > 0 & discrepancyType = SALE_REQUEST'
+        },
+        process: {
+            triggerAction: 'TRIGGER_SALE_ACCEPT_CORRECTION',
+            apiTrigger: 'notifyWarehouseOnSaleAcceptCorrection',
+            notificationTag: 'SALE_ACCEPT_CORRECTION',
+            nextStatus: SODStatus.RESOLVED,
+            logicDesc: 'Gửi Automate sửa số lượng trên đơn hàng.'
+        },
+        output: {
+            targetRole: UserRole.WAREHOUSE,
+            uiDescription: 'Kho nhận thông báo Sale đã đồng ý sửa số.',
+            nextAction: 'Automate cập nhật số lượng.'
+        }
+    },
+    // --- CASE B6: TỪ CHỐI SỬA SỐ (CHỈ CHO DISCREPANCY TYPE = SALE_REQUEST) ---
+    {
+        id: 'B6',
+        group: 'CASE B (Lần sau K>1)',
+        name: 'Từ chối sửa số lượng',
+        description: 'Sale từ chối yêu cầu sửa số từ Kho. Kho cần kiểm tra lại.',
+        actor: UserRole.SALE,
+        input: {
+            actionName: 'Từ chối sửa số',
+            condition: 'DeliveryCount > 0 & discrepancyType = SALE_REQUEST'
+        },
+        process: {
+            triggerAction: 'TRIGGER_SALE_REJECT_CORRECTION',
+            apiTrigger: 'notifyWarehouseOnSaleRejectCorrection',
+            notificationTag: 'SALE_REJECT_CORRECTION',
+            nextStatus: 'KEEP_CURRENT',
+            logicDesc: 'Gửi thông báo từ chối. Kho kiểm tra lại.'
+        },
+        output: {
+            targetRole: UserRole.WAREHOUSE,
+            uiDescription: 'Kho nhận thông báo Sale từ chối sửa số.',
+            nextAction: 'Kho kiểm tra lại và gửi request mới nếu cần.'
         }
     },
 

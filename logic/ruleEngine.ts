@@ -191,6 +191,37 @@ export const executeBusinessRule = async (
             break;
         }
 
+        // [NEW] Sale đồng ý yêu cầu sửa số từ Kho (discrepancyType = SALE_REQUEST)
+        case 'TRIGGER_SALE_ACCEPT_CORRECTION': {
+            // Cập nhật saleDecision
+            updatedSOD.saleDecision = {
+                action: 'SHIP_AND_CLOSE', // Đánh dấu là đã xử lý
+                quantity: sod.warehouseVerification?.requestedQty || 0,
+                timestamp: new Date().toISOString()
+            };
+
+            // Gửi notification xuống Power Automate để sửa số
+            await FlowTriggers.notifyWarehouseOnSaleAcceptCorrection(updatedSOD, recordId);
+            break;
+        }
+
+        // [NEW] Sale từ chối yêu cầu sửa số từ Kho
+        case 'TRIGGER_SALE_REJECT_CORRECTION': {
+            // Cập nhật saleDecision để đánh dấu đã từ chối
+            updatedSOD.saleDecision = {
+                action: 'REJECT_REPORT', // Đánh dấu là từ chối
+                timestamp: new Date().toISOString()
+            };
+
+            // Xóa warehouseVerification để Kho có thể gửi request mới
+            updatedSOD.warehouseVerification = undefined;
+            updatedSOD.isNotificationSent = false;
+
+            // Gửi notification
+            await FlowTriggers.notifyWarehouseOnSaleRejectCorrection(updatedSOD, recordId);
+            break;
+        }
+
         default:
             console.warn(`⚠️ [RuleEngine] Action type '${actionType}' not implemented.`);
     }

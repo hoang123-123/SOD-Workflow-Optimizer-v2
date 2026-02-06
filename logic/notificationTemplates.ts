@@ -349,3 +349,79 @@ export const buildSaleRejectReportPayload = (sod: SOD, recordId: string): Notifi
         Timestamp: new Date().toISOString()
     };
 };
+
+/**
+ * [NEW] TEMPLATE 9: SALE ACCEPT CORRECTION - Sale đồng ý sửa số lượng
+ * Gửi xuống Power Automate để cập nhật số lượng trên đơn hàng
+ */
+export const buildSaleAcceptCorrectionPayload = (sod: SOD, recordId: string): NotificationPayload => {
+    const { k, N, unit, unitWarehouse } = getIndices(sod);
+
+    // Lấy số lượng Kho yêu cầu sửa từ warehouseVerification
+    const requestedQtyON = sod.warehouseVerification?.requestedQty || 0; // Số lượng đơn (ON)
+    const requestedQtyWH = sod.warehouseVerification?.actualQty || 0;    // Số lượng kho (WH)
+    const originalQtyON = sod.warehouseVerification?.requestedNeedON || N; // Nhu cầu gốc (ON)
+
+    // Tính số lượng cần giảm (change = original - new)
+    const qtyChange = originalQtyON - requestedQtyON;
+
+    const message = `✅ [ĐỒNG Ý SỬA SỐ] Sale xác nhận sửa số lượng: ${requestedQtyON} ${unit} (thay vì ${originalQtyON} ${unit}). Giảm ${qtyChange} ${unit}.`;
+
+    return {
+        Type: "SALE_ACCEPT_CORRECTION",
+        SodId: sod.id,
+        RecordId: recordId,
+        SodName: sod.detailName,
+        Sku: sod.product.sku,
+        SONumber: sod.soNumber,
+        ProductName: sod.product.name,
+        Message: message,
+        Details: {
+            // Số lượng mới (Kho yêu cầu)
+            SoLuongMoi: requestedQtyON,
+            SoLuongMoiKho: requestedQtyWH,
+            // Số lượng gốc (Nhu cầu ban đầu)
+            SoLuongGoc: originalQtyON,
+            // Số lượng thay đổi (để Automate biết cần cập nhật bao nhiêu)
+            SoLuongThayDoi: qtyChange,
+            LanGiao: k,
+            Actor: "SALE",
+            ActionCode: k === 1 ? "C1_ACCEPT_CORRECTION" : "C2_ACCEPT_CORRECTION"
+        },
+        Timestamp: new Date().toISOString()
+    };
+};
+
+/**
+ * [NEW] TEMPLATE 10: SALE REJECT CORRECTION - Sale từ chối sửa số lượng
+ * Thông báo cho Kho biết Sale không đồng ý, yêu cầu kiểm tra lại
+ */
+export const buildSaleRejectCorrectionPayload = (sod: SOD, recordId: string): NotificationPayload => {
+    const { k, N, unit } = getIndices(sod);
+
+    // Lấy số lượng Kho đã yêu cầu
+    const requestedQtyON = sod.warehouseVerification?.requestedQty || 0;
+    const originalQtyON = sod.warehouseVerification?.requestedNeedON || N;
+
+    const message = `❌ [TỪ CHỐI SỬA SỐ] Sale từ chối yêu cầu sửa số ${requestedQtyON} ${unit}. Giữ nguyên nhu cầu ${originalQtyON} ${unit}. Yêu cầu Kho kiểm tra lại.`;
+
+    return {
+        Type: "SALE_REJECT_CORRECTION",
+        SodId: sod.id,
+        RecordId: recordId,
+        SodName: sod.detailName,
+        Sku: sod.product.sku,
+        SONumber: sod.soNumber,
+        ProductName: sod.product.name,
+        Message: message,
+        Details: {
+            SoLuongKhoYeuCau: requestedQtyON,
+            SoLuongGiuNguyen: originalQtyON,
+            LanGiao: k,
+            Actor: "SALE",
+            ActionCode: k === 1 ? "C1_REJECT_CORRECTION" : "C2_REJECT_CORRECTION"
+        },
+        Timestamp: new Date().toISOString()
+    };
+};
+

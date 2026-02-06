@@ -64,12 +64,18 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
     // [NEW] Check nếu là Kho yêu cầu sửa số (khác với báo lệch kho)
     const isRequestCorrection = discrepancyType === 'SALE_REQUEST';
 
-    // --- HANDLER: XÁC NHẬN (GIAO) ---
+    // --- HANDLER: XÁC NHẬN (GIAO hoặc ĐỒNG Ý SỬA SỐ) ---
     const handleAccept = async () => {
         setIsSubmitting('ACCEPT');
         try {
             const rulePrefix = (sod.deliveryCount || 0) === 0 ? 'A' : 'B';
-            const ruleId = `${rulePrefix}1`; // Case 1: SHIP
+
+            // [UPDATED] Phân biệt rule dựa trên loại request
+            // - SALE_REQUEST: Dùng A5/B5 (TRIGGER_SALE_ACCEPT_CORRECTION) -> Gửi Automate sửa số
+            // - Khác: Dùng A1/B1 (TRIGGER_SALE_SHIPMENT) -> Giao hàng trực tiếp
+            const ruleId = isRequestCorrection
+                ? `${rulePrefix}5`  // A5 hoặc B5: Đồng ý sửa số -> Gửi Automate
+                : `${rulePrefix}1`; // A1 hoặc B1: Giao hàng
 
             const updatedSOD = await executeBusinessRule(ruleId, sod, recordId, {
                 quantity: requestedQtyON,
@@ -80,13 +86,13 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
             if (onSaveState) await onSaveState(updatedSOD);
         } catch (error) {
             console.error("Accept Discrepancy Error:", error);
-            alert("Lỗi khi xác nhận giao hàng.");
+            alert(isRequestCorrection ? "Lỗi khi xác nhận sửa số." : "Lỗi khi xác nhận giao hàng.");
         } finally {
             setIsSubmitting(null);
         }
     };
 
-    // --- HANDLER: CHỜ HÀNG (WAIT) ---
+    // --- HANDLER: CHỜ HÀNG (WAIT) - Chỉ cho báo lệch kho, không áp dụng cho SALE_REQUEST ---
     const handleWait = async () => {
         setIsSubmitting('WAIT');
         try {
@@ -105,7 +111,7 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
         }
     };
 
-    // --- HANDLER: HỦY DÒNG (CANCEL) ---
+    // --- HANDLER: HỦY DÒNG (CANCEL) - Chỉ cho báo lệch kho ---
     const handleCancel = async () => {
         if (!confirm("Bạn có chắc chắn muốn HỦY hoàn toàn dòng hàng này?")) return;
         setIsSubmitting('CANCEL');
@@ -127,13 +133,23 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
         }
     };
 
-    // --- HANDLER: TỪ CHỐI (HỦY/KIỂM LẠI) ---
+    // --- HANDLER: TỪ CHỐI (KIỂM LẠI hoặc TỪ CHỐI SỬA SỐ) ---
     const handleReject = async () => {
-        if (!confirm("Bạn có chắc chắn muốn TỪ CHỐI báo cáo sai lệch này? (Yêu cầu Kho kiểm tra lại)")) return;
+        const confirmMessage = isRequestCorrection
+            ? "Bạn có chắc chắn muốn TỪ CHỐI yêu cầu sửa số? (Kho sẽ cần kiểm tra lại)"
+            : "Bạn có chắc chắn muốn TỪ CHỐI báo cáo sai lệch này? (Yêu cầu Kho kiểm tra lại)";
+
+        if (!confirm(confirmMessage)) return;
         setIsSubmitting('REJECT');
         try {
             const rulePrefix = (sod.deliveryCount || 0) === 0 ? 'A' : 'B';
-            const ruleId = `${rulePrefix}4`; // [UPDATED] Use Rule A4/B4 for Reject Discrepancy (NOT Cancel)
+
+            // [UPDATED] Phân biệt rule dựa trên loại request
+            // - SALE_REQUEST: Dùng A6/B6 (TRIGGER_SALE_REJECT_CORRECTION)
+            // - Khác: Dùng A4/B4 (TRIGGER_SALE_REJECT_REPORT)
+            const ruleId = isRequestCorrection
+                ? `${rulePrefix}6`  // A6 hoặc B6: Từ chối sửa số
+                : `${rulePrefix}4`; // A4 hoặc B4: Từ chối báo cáo sai lệch
 
             const updatedSOD = await executeBusinessRule(ruleId, sod, recordId, {
                 quantity: N_ON // Giữ số lượng nhu cầu gốc (dùng để báo notify)
@@ -143,7 +159,7 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
             if (onSaveState) await onSaveState(updatedSOD);
         } catch (error) {
             console.error("Reject Discrepancy Error:", error);
-            alert("Lỗi khi từ chối báo cáo.");
+            alert(isRequestCorrection ? "Lỗi khi từ chối yêu cầu sửa số." : "Lỗi khi từ chối báo cáo.");
         } finally {
             setIsSubmitting(null);
         }
@@ -206,37 +222,45 @@ export const SaleDiscrepancyCard: React.FC<SaleDiscrepancyCardProps> = ({
                         </div>
                     ) : (
                         <div className="flex items-center gap-1.5">
-                            {/* 1. Nút Giao (Ship) */}
+                            {/* 1. Nút Xác nhận / Giao */}
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleAccept(); }}
                                 disabled={!!isSubmitting}
-                                className="h-8 px-3 rounded-lg bg-emerald-500 text-white flex items-center gap-1.5 hover:bg-emerald-600 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wide"
-                                title="Xác nhận giao"
+                                className={`h-8 px-3 rounded-lg text-white flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wide ${isRequestCorrection
+                                        ? 'bg-blue-500 hover:bg-blue-600'
+                                        : 'bg-emerald-500 hover:bg-emerald-600'
+                                    }`}
+                                title={isRequestCorrection ? "Đồng ý sửa số lượng" : "Xác nhận giao"}
                             >
                                 {isSubmitting === 'ACCEPT' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" strokeWidth={3} />}
-                                <span>Giao</span>
+                                <span>{isRequestCorrection ? 'Đồng ý' : 'Giao'}</span>
                             </button>
 
-                            {/* 2. Nút Chờ (Wait) */}
-                            <button
-                                onClick={(e) => { e.stopPropagation(); handleWait(); }}
-                                disabled={!!isSubmitting}
-                                className="h-8 px-3 rounded-lg bg-amber-500 text-white flex items-center gap-1.5 hover:bg-amber-600 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wide"
-                                title="Chờ hàng về"
-                            >
-                                {isSubmitting === 'WAIT' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Clock className="w-3.5 h-3.5" strokeWidth={3} />}
-                                <span>Chờ</span>
-                            </button>
+                            {/* 2. Nút Chờ (Wait) - ẨN nếu là SALE_REQUEST */}
+                            {!isRequestCorrection && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleWait(); }}
+                                    disabled={!!isSubmitting}
+                                    className="h-8 px-3 rounded-lg bg-amber-500 text-white flex items-center gap-1.5 hover:bg-amber-600 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wide"
+                                    title="Chờ hàng về"
+                                >
+                                    {isSubmitting === 'WAIT' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Clock className="w-3.5 h-3.5" strokeWidth={3} />}
+                                    <span>Chờ</span>
+                                </button>
+                            )}
 
-                            {/* 4. Nút Kiểm lại (Reject Report) */}
+                            {/* 3. Nút Từ chối / Kiểm lại */}
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleReject(); }}
                                 disabled={!!isSubmitting}
-                                className="h-8 px-3 rounded-lg bg-white border border-slate-200 text-slate-500 flex items-center gap-1.5 hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wide"
-                                title="Yêu cầu kiểm tra lại"
+                                className={`h-8 px-3 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 font-bold text-[10px] uppercase tracking-wide ${isRequestCorrection
+                                        ? 'bg-rose-500 text-white hover:bg-rose-600'
+                                        : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'
+                                    }`}
+                                title={isRequestCorrection ? "Từ chối yêu cầu sửa số" : "Yêu cầu kiểm tra lại"}
                             >
-                                {isSubmitting === 'REJECT' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowRightLeft className="w-3.5 h-3.5" strokeWidth={3} />}
-                                <span>Kiểm lại</span>
+                                {isSubmitting === 'REJECT' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (isRequestCorrection ? <X className="w-3.5 h-3.5" strokeWidth={3} /> : <ArrowRightLeft className="w-3.5 h-3.5" strokeWidth={3} />)}
+                                <span>{isRequestCorrection ? 'Từ chối' : 'Kiểm lại'}</span>
                             </button>
                         </div>
                     )}

@@ -134,7 +134,9 @@ export interface NotificationPayload {
   | "WH_URGENT_ACCEPTED"
   | "WH_URGENT_REJECTED"
   | "SALE_TO_WAREHOUSE_REJECT_REPORT"
-  | "WAREHOUSE_REQUEST_CORRECTION";  // [NEW] Kho yêu cầu sửa số lượng
+  | "WAREHOUSE_REQUEST_CORRECTION"   // [NEW] Kho yêu cầu sửa số lượng
+  | "SALE_ACCEPT_CORRECTION"         // [NEW] Sale đồng ý sửa số -> Power Automate sẽ sửa
+  | "SALE_REJECT_CORRECTION";        // [NEW] Sale từ chối sửa số -> Kho kiểm tra lại
 
   "SodId": string;
   "RecordId": string;

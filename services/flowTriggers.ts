@@ -140,3 +140,22 @@ export const notifySaleOnUrgentResponse = async (sod: any, status: 'ACCEPTED' | 
     };
     return await sendToFlow(payload, "Notify Urgent Response");
 };
+
+/**
+ * [NEW] Sale đồng ý yêu cầu sửa số từ Kho
+ * Power Automate sẽ cập nhật số lượng trên đơn hàng
+ */
+export const notifyWarehouseOnSaleAcceptCorrection = async (sod: any, recordId: string): Promise<boolean> => {
+    const payload = Templates.buildSaleAcceptCorrectionPayload(sod, recordId);
+    return await sendToFlow(payload, "Notify Accept Correction");
+};
+
+/**
+ * [NEW] Sale từ chối yêu cầu sửa số từ Kho
+ * Thông báo cho Kho biết cần kiểm tra lại
+ */
+export const notifyWarehouseOnSaleRejectCorrection = async (sod: any, recordId: string): Promise<boolean> => {
+    const payload = Templates.buildSaleRejectCorrectionPayload(sod, recordId);
+    return await sendToFlow(payload, "Notify Reject Correction");
+};
+
